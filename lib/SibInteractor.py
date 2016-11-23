@@ -45,3 +45,17 @@ class SibInteractor:
 
         # return data
         return self.kp.result_rdf_query
+
+    
+    def custom_query(self, q):
+
+        """Method to perform a custom query and return a list of URIs"""
+
+        uri_list = []
+        self.kp.load_query_sparql(q)
+        for binding in self.kp.result_sparql_query:
+            for variable in binding:
+                if not(str(variable[2]) in uri_list):
+                    uri_list.append(str(variable[2]))
+
+        return uri_list

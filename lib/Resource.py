@@ -12,7 +12,7 @@ class Resource:
         """Initializes the Resource class"""
         
         # store the resource name
-        self.name = str(resource)
+        self.name = str(resource)        
 
         # split in prefix and qname
         try:

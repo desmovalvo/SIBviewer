@@ -29,18 +29,18 @@ from mayavi.core.ui.mayavi_scene import MayaviScene
 # constants
 SIB_HOST = "localhost"
 SIB_PORT = 10111
-VALUES = ["Male", "Female"]
 
 class Visualization(HasTraits):
 
     # UI definition    
     scene      = Instance(MlabSceneModel, ())
-    query      = Str
+    q          = Str
+    query = Button()
     possible_classes = List([])
     classes    = Enum(0, values="possible_classes")
     refresh    = Button()
     view = View(HGroup(Item('scene', editor=SceneEditor(scene_class=MayaviScene), height=640, width=800, show_label=False),
-                       VGroup('_', 'query', 'classes', Item('refresh', show_label=False))))
+                       VGroup('_', Item('q', show_label=False), Item('query', show_label=False), 'classes', Item('refresh', show_label=False))))
    
 
     def __init__(self, kp):
@@ -56,16 +56,32 @@ class Visualization(HasTraits):
         classes = self.kp.get_classes()
         for c in classes:
             self.possible_classes.append(c)
-        
+
+        # initialize data structures
+        self.res_list = ResourceList()
+
+        # get and analyze knowledge
+        p0, p1 = self.data_classifier()
+            
         # plot 
-        self.sib_artist()
+        self.sib_artist(p0, p1)
 
-        
-    @on_trait_change('query')
-    def update_plot(self):
-        pass
-        
+     
+    def _query_fired(self):
 
+        """This method is executed when the query button is pressed"""    
+
+        # clean the scene
+        self.scene.mlab.clf()
+        
+        # retrieve and classify data
+        p0, p1 = self.data_classifier(self.q)
+        print "I DUE NUOVI PIANI SONO"
+        print p0
+        print p1
+        self.sib_artist(p0, p1)
+        
+    
     def _refresh_fired(self):
         
         """This method is executed when the refresh button is pressed"""
@@ -73,39 +89,62 @@ class Visualization(HasTraits):
         # clean and redraw
         self.scene.mlab.clf()
         self.sib_artist()
+
+
+    def data_classifier(self, sparql_query=None):
+
+        # re-init res_list
+        self.res_list = ResourceList()
         
+        # planes
+        plane0 = []
+        plane1 = []
         
-    def sib_artist(self):
-    
         # retrieve data
         results = self.kp.get_everything()
-    
-        # initialize dictionaries
-        resources = {}
-    
+
+        # execute the sparql query
+        uri_list = []
+        if sparql_query:
+            uri_list = self.kp.custom_query(sparql_query)
+        
         # draw the plane
         self.drawer.draw_plane(0)
-            
-        # create a Resource List
-        res_list = ResourceList()
+        if len(plane1) > 0:
+            self.drawer.draw_plane(1)
         
+            
         # data analyzer
         for triple in results:
     
             sub, pred, ob = triple
             
             # analyze the subject
-            sub_res = res_list.find_by_name(str(sub))
+            sub_res = self.res_list.find_by_name(str(sub))
             if not sub_res:
                 sub_res = Resource(sub)
-                res_list.add_resource(sub_res)
+                self.res_list.add_resource(sub_res)
+                
+                # determine the plane for the subject
+                print "CONFRONTO %s CON" % (str(sub))
+                print uri_list
+                if str(sub) in uri_list:
+                    plane1.append(sub_res)
+                else:
+                    plane0.append(sub_res)
     
             # analyze the object
             if isinstance(ob, URI):
-                ob_res = res_list.find_by_name(str(ob))
+                ob_res = self.res_list.find_by_name(str(ob))
                 if not ob_res:
                     ob_res = Resource(ob)
-                    res_list.add_resource(ob_res)
+                    self.res_list.add_resource(ob_res)
+
+                    # determine the plane for the object
+                    if str(ob) in uri_list:
+                        plane1.append(ob_res)
+                    else:
+                        plane0.append(ob_res)
                     
             # analyze the predicate (looking at the object)
             if isinstance(ob, URI):
@@ -119,8 +158,17 @@ class Visualization(HasTraits):
                 # new data property found
                 dp = DataProperty(pred, sub_res, str(ob))
                 sub_res.add_data_property(dp)
-    
-    
+
+        # return
+        return plane0, plane1
+                
+        
+    def sib_artist(self, plane0, plane1):
+
+
+        print plane0
+        print plane1
+        
         ##################################################
         #
         # draw resources and data properties
@@ -128,19 +176,23 @@ class Visualization(HasTraits):
         ##################################################
         
         # resource coordinates generator
-        num_points = len(res_list.list)
+        num_points = len(self.res_list.list)
         
         # divide 360 by the number of points to get the base angle
         multiplier = 20
         angle = 360 / num_points
         iteration = 0 
-        for resource in res_list.list.keys():
+        for resource in self.res_list.list.keys():
     
-            r = res_list.list[resource]        
+            r = self.res_list.list[resource]        
             x = multiplier * math.cos(math.radians(iteration * angle))
             y = multiplier * math.sin(math.radians(iteration * angle))
-            z = 0
-            res_list.list[resource].set_coordinates(x,y,z)
+
+            if r in plane0:
+                z = 0
+            else:
+                z = 100
+            self.res_list.list[resource].set_coordinates(x,y,z)
             
             # draw the resource
             self.drawer.draw_resource(r)
@@ -173,8 +225,8 @@ class Visualization(HasTraits):
         #
         ##################################################
     
-        for resource in res_list.list.keys():                
-            for op in res_list.list[resource].object_properties:
+        for resource in self.res_list.list.keys():                
+            for op in self.res_list.list[resource].object_properties:
 
                 # draw the edge
                 self.drawer.draw_object_property(op)
