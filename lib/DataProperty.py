@@ -7,16 +7,18 @@ from smart_m3.m3_kp_api import *
 class DataProperty:
 
     # initializer
-    def __init__(self, dproperty, value):
+    def __init__(self, dproperty, resource, value):
 
         """Initializes the DataProperty class"""
 
+        self.resource = resource
         self.dproperty = str(dproperty)
         self.value = str(value)
 
         # initialize the object coordinates
         self.x = None
         self.y = None
+        self.z = None
 
 
     # get value
@@ -32,4 +34,4 @@ class DataProperty:
 
         """Returns the coordinates for the object node"""
 
-        return self.x, self.y
+        return self.x, self.y, self.z

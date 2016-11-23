@@ -2,6 +2,7 @@
 
 
 # local requirements
+from lib.Drawer import *
 from lib.Resource import *
 from lib.constants import *
 from lib.ResourceList import *
@@ -49,6 +50,7 @@ class Visualization(HasTraits):
 
         # store the kp
         self.kp = kp
+        self.drawer = Drawer(self.scene)
         
         # fill the list of classes
         classes = self.kp.get_classes()
@@ -82,9 +84,7 @@ class Visualization(HasTraits):
         resources = {}
     
         # draw the plane
-        s = numpy.random.random((100, 100))
-        i = self.scene.mlab.imshow(s, colormap="gray", opacity=0.5)
-        i.actor.position = [0,0,-1]
+        self.drawer.draw_plane(0)
             
         # create a Resource List
         res_list = ResourceList()
@@ -111,13 +111,13 @@ class Visualization(HasTraits):
             if isinstance(ob, URI):
     
                 # new object property found
-                op = ObjectProperty(pred, ob_res)
+                op = ObjectProperty(pred, sub_res, ob_res)
                 sub_res.add_object_property(op)
     
             else:
     
                 # new data property found
-                dp = DataProperty(pred, str(ob))
+                dp = DataProperty(pred, sub_res, str(ob))
                 sub_res.add_data_property(dp)
     
     
@@ -143,8 +143,7 @@ class Visualization(HasTraits):
             res_list.list[resource].set_coordinates(x,y,z)
             
             # draw the resource
-            self.scene.mlab.points3d(x, y, z, color=purple, colormap="copper", scale_factor=5, resolution=32)
-            self.scene.mlab.text(x, y, r.name, z=0, width=0.13)
+            self.drawer.draw_resource(r)
     
             # draw the data properties
             num_prop = len(r.data_properties)
@@ -154,23 +153,12 @@ class Visualization(HasTraits):
                 for dp in r.data_properties:
                     
                     dmultiplier = 7
-                    dx = dmultiplier * math.cos(math.radians(diteration * dangle)) + r.get_coordinates()[0]
-                    dy = dmultiplier * math.sin(math.radians(diteration * dangle)) + r.get_coordinates()[1]
-                    dz = r.get_coordinates()[2]
+                    dp.x = dmultiplier * math.cos(math.radians(diteration * dangle)) + r.get_coordinates()[0]
+                    dp.y = dmultiplier * math.sin(math.radians(diteration * dangle)) + r.get_coordinates()[1]
+                    dp.z = r.get_coordinates()[2]
                     
-                    # draw the property
-                    u = numpy.linspace(x, dx, 10)
-                    v = numpy.linspace(y, dy, 10)
-                    w = numpy.linspace(0,0,10)
-                    self.scene.mlab.points3d(dx, dy, dz, color=green, colormap="copper", scale_factor=2, resolution=32)
-                    self.scene.mlab.text(dx, dy, dp.get_value(), z=0, width=0.13)
-    
-                    # draw the edge
-                    self.scene.mlab.plot3d(u, v, w, color=green, tube_radius=.2)
-                    pred_x = numpy.mean(u)
-                    pred_y = numpy.mean(v)
-                    pred_z = numpy.mean(w)
-                    self.scene.mlab.text(pred_x, pred_y, str(dp.dproperty).split("#")[1], z=0, width=0.13)
+                    # draw the property                
+                    self.drawer.draw_data_property(dp)
                     
                     diteration += 1
             except:
@@ -185,25 +173,11 @@ class Visualization(HasTraits):
         #
         ##################################################
     
-        for resource in res_list.list.keys():
-    
-            sres = res_list.list[resource]
-            sx, sy, sz = sres.get_coordinates()
-    
-            for op in sres.object_properties:
-    
-                ores = op.get_value()
-                ox, oy, oz = ores.get_coordinates()
-    
+        for resource in res_list.list.keys():                
+            for op in res_list.list[resource].object_properties:
+
                 # draw the edge
-                u = numpy.linspace(sx, ox, 10)
-                v = numpy.linspace(sy, oy, 10)
-                w = numpy.linspace(sz, oz, 10)
-                self.scene.mlab.plot3d(u, v, w, color=op.color, tube_radius=.2)
-                pred_x = numpy.mean(u)
-                pred_y = numpy.mean(v)
-                pred_z = numpy.mean(w)
-                self.scene.mlab.text(pred_x, pred_y, op.oproperty.split("#")[1], z=0, width=0.13)
+                self.drawer.draw_object_property(op)
 
                 
 ###############################################################
@@ -236,7 +210,7 @@ if __name__ == "__main__":
 
     ###############################################################
     #
-    # instantiate the KP
+    # instantiate the KP 
     #
     ###############################################################
     kp = SibInteractor(sib_host, sib_port)
