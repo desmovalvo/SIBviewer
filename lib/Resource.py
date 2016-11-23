@@ -32,15 +32,17 @@ class Resource:
         # define coordinates
         self.x = None
         self.y = None
+        self.z = None
 
 
     # set coords
-    def set_coordinates(self, x, y):
+    def set_coordinates(self, x, y, z):
 
         """Stores the coordinates of the resource"""
         
         self.x = int(x)
         self.y = int(y)
+        self.z = int(z)
 
         
     # get coords
@@ -48,7 +50,7 @@ class Resource:
 
         """Returns the coordinates"""
         
-        return self.x, self.y
+        return self.x, self.y, self.z
 
 
     # add data property

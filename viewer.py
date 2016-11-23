@@ -18,8 +18,8 @@ from uuid import uuid4
 from mayavi import mlab
 from random import randint
 from smart_m3.m3_kp_api import *
-from traits.api import HasTraits, Range, Str, Instance, on_trait_change, Enum, Button
-from traitsui.api import View, Item, HGroup
+from traits.api import HasTraits, Range, Str, Instance, on_trait_change, Enum, Button, List
+from traitsui.api import View, Item, VGroup, HGroup
 from tvtk.pyface.scene_editor import SceneEditor
 from mayavi.tools.mlab_scene_model import MlabSceneModel
 from mayavi.core.ui.mayavi_scene import MayaviScene
@@ -28,34 +28,40 @@ from mayavi.core.ui.mayavi_scene import MayaviScene
 # constants
 SIB_HOST = "localhost"
 SIB_PORT = 10111
-
+VALUES = ["Male", "Female"]
 
 class Visualization(HasTraits):
 
     # UI definition    
     scene      = Instance(MlabSceneModel, ())
     query      = Str
-    classes    = Enum('female', 'Male')
+    possible_classes = List([])
+    classes    = Enum(0, values="possible_classes")
     refresh    = Button()
-    view = View(Item('scene', editor=SceneEditor(scene_class=MayaviScene), height=640, width=800, show_label=False),
-                HGroup('_', 'query', 'classes', Item('refresh', show_label=False)))
-    
-    
+    view = View(HGroup(Item('scene', editor=SceneEditor(scene_class=MayaviScene), height=640, width=800, show_label=False),
+                       VGroup('_', 'query', 'classes', Item('refresh', show_label=False))))
+   
+
     def __init__(self, kp):
 
         # super class initializer
         HasTraits.__init__(self)
 
+        # store the kp
+        self.kp = kp
+        
+        # fill the list of classes
+        classes = self.kp.get_classes()
+        for c in classes:
+            self.possible_classes.append(c)
+        
         # plot 
-        #x, y, z, t = curve(self.meridional, self.transverse)
-        #self.plot = self.scene.mlab.plot3d(x, y, z, t, colormap='Spectral')
         self.sib_artist()
 
         
     @on_trait_change('query')
     def update_plot(self):
-        self.classes = "Male"
-        sib_artist()
+        pass
         
 
     def _refresh_fired(self):
@@ -70,7 +76,7 @@ class Visualization(HasTraits):
     def sib_artist(self):
     
         # retrieve data
-        results = kp.get_everything()
+        results = self.kp.get_everything()
     
         # initialize dictionaries
         resources = {}
@@ -134,10 +140,10 @@ class Visualization(HasTraits):
             x = multiplier * math.cos(math.radians(iteration * angle))
             y = multiplier * math.sin(math.radians(iteration * angle))
             z = 0
-            res_list.list[resource].set_coordinates(x,y)
+            res_list.list[resource].set_coordinates(x,y,z)
             
             # draw the resource
-            self.scene.mlab.points3d(x, y, z, color=purple, colormap="copper", scale_factor=5)
+            self.scene.mlab.points3d(x, y, z, color=purple, colormap="copper", scale_factor=5, resolution=32)
             self.scene.mlab.text(x, y, r.name, z=0, width=0.13)
     
             # draw the data properties
@@ -150,13 +156,13 @@ class Visualization(HasTraits):
                     dmultiplier = 7
                     dx = dmultiplier * math.cos(math.radians(diteration * dangle)) + r.get_coordinates()[0]
                     dy = dmultiplier * math.sin(math.radians(diteration * dangle)) + r.get_coordinates()[1]
-                    dz = 0
+                    dz = r.get_coordinates()[2]
                     
                     # draw the property
                     u = numpy.linspace(x, dx, 10)
                     v = numpy.linspace(y, dy, 10)
                     w = numpy.linspace(0,0,10)
-                    self.scene.mlab.points3d(dx, dy, dz, color=green, colormap="copper", scale_factor=2)
+                    self.scene.mlab.points3d(dx, dy, dz, color=green, colormap="copper", scale_factor=2, resolution=32)
                     self.scene.mlab.text(dx, dy, dp.get_value(), z=0, width=0.13)
     
                     # draw the edge
@@ -182,17 +188,17 @@ class Visualization(HasTraits):
         for resource in res_list.list.keys():
     
             sres = res_list.list[resource]
-            sx, sy = sres.get_coordinates()
+            sx, sy, sz = sres.get_coordinates()
     
             for op in sres.object_properties:
     
                 ores = op.get_value()
-                ox, oy = ores.get_coordinates()
+                ox, oy, oz = ores.get_coordinates()
     
                 # draw the edge
                 u = numpy.linspace(sx, ox, 10)
                 v = numpy.linspace(sy, oy, 10)
-                w = numpy.linspace(0,0,10)
+                w = numpy.linspace(sz, oz, 10)
                 self.scene.mlab.plot3d(u, v, w, color=op.color, tube_radius=.2)
                 pred_x = numpy.mean(u)
                 pred_y = numpy.mean(v)
