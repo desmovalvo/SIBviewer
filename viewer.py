@@ -88,7 +88,8 @@ class Visualization(HasTraits):
 
         # clean and redraw
         self.scene.mlab.clf()
-        self.sib_artist()
+        p0, p1 = self.data_classifier()
+        self.sib_artist(p0, p1)
 
 
     def data_classifier(self, sparql_query=None):
@@ -177,44 +178,45 @@ class Visualization(HasTraits):
         num_points = len(self.res_list.list)
         
         # divide 360 by the number of points to get the base angle
-        multiplier = 20
-        angle = 360 / num_points
-        iteration = 0 
-        for resource in self.res_list.list.keys():
+        if num_points > 0:
+            multiplier = 20
+            angle = 360 / num_points
+            iteration = 0 
+            for resource in self.res_list.list.keys():
+        
+                r = self.res_list.list[resource]        
+                x = multiplier * math.cos(math.radians(iteration * angle))
+                y = multiplier * math.sin(math.radians(iteration * angle))
     
-            r = self.res_list.list[resource]        
-            x = multiplier * math.cos(math.radians(iteration * angle))
-            y = multiplier * math.sin(math.radians(iteration * angle))
-
-            if r in plane0:
-                z = 0
-            else:
-                z = 100
-            self.res_list.list[resource].set_coordinates(x,y,z)
-            
-            # draw the resource
-            self.drawer.draw_resource(r)
-    
-            # draw the data properties
-            num_prop = len(r.data_properties)
-            try:
-                dangle = 360 / num_prop
-                diteration = 0
-                for dp in r.data_properties:
-                    
-                    dmultiplier = 7
-                    dp.x = dmultiplier * math.cos(math.radians(diteration * dangle)) + r.get_coordinates()[0]
-                    dp.y = dmultiplier * math.sin(math.radians(diteration * dangle)) + r.get_coordinates()[1]
-                    dp.z = r.get_coordinates()[2]
-                    
-                    # draw the property                
-                    self.drawer.draw_data_property(dp)
-                    
-                    diteration += 1
-            except:
-                pass
-            
-            iteration += 1
+                if r in plane0:
+                    z = 0
+                else:
+                    z = 100
+                self.res_list.list[resource].set_coordinates(x,y,z)
+                
+                # draw the resource
+                self.drawer.draw_resource(r)
+        
+                # draw the data properties
+                num_prop = len(r.data_properties)
+                try:
+                    dangle = 360 / num_prop
+                    diteration = 0
+                    for dp in r.data_properties:
+                        
+                        dmultiplier = 7
+                        dp.x = dmultiplier * math.cos(math.radians(diteration * dangle)) + r.get_coordinates()[0]
+                        dp.y = dmultiplier * math.sin(math.radians(diteration * dangle)) + r.get_coordinates()[1]
+                        dp.z = r.get_coordinates()[2]
+                        
+                        # draw the property                
+                        self.drawer.draw_data_property(dp)
+                        
+                        diteration += 1
+                except:
+                    pass
+                
+                iteration += 1
     
     
         ##################################################
