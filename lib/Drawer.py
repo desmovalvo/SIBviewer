@@ -79,7 +79,7 @@ class Drawer:
         self.scene.mlab.plot3d(u, v, w, color=green, tube_radius=.2)
 
         # write the name of the predicate
-        self.scene.mlab.text(pred_x, pred_y, str(dp.dproperty).split("#")[1], z=0, width=0.13)
+        self.scene.mlab.text(pred_x, pred_y, str(dp.dproperty).split("#")[1], z=dp.z, width=0.13)
 
         
     # plane drawer
@@ -88,6 +88,7 @@ class Drawer:
         """Used to draw a plane"""
 
         # draw the plane
+        print "Drawing a plane"
         s = numpy.random.random((100, 100))
         i = self.scene.mlab.imshow(s, colormap="gray", opacity=0.5)
         i.actor.position = [0,0,plane_number*100-4]

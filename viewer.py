@@ -107,13 +107,7 @@ class Visualization(HasTraits):
         uri_list = []
         if sparql_query:
             uri_list = self.kp.custom_query(sparql_query)
-        
-        # draw the plane
-        self.drawer.draw_plane(0)
-        if len(plane1) > 0:
-            self.drawer.draw_plane(1)
-        
-            
+
         # data analyzer
         for triple in results:
     
@@ -165,9 +159,13 @@ class Visualization(HasTraits):
         
     def sib_artist(self, plane0, plane1):
 
-
         print plane0
         print plane1
+        
+        # draw the plane
+        self.drawer.draw_plane(0)
+        if len(plane1) > 0:
+            self.drawer.draw_plane(1)                    
         
         ##################################################
         #
