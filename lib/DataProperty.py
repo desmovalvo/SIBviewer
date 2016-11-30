@@ -20,6 +20,12 @@ class DataProperty:
         self.y = None
         self.z = None
 
+        # initialize the graphic item
+        self.gitem_object = None
+        self.gitem_objectlabel = None
+        self.gitem_predicate = None
+        self.gitem_predicatelabel = None
+
 
     # get value
     def get_value(self):

@@ -28,6 +28,10 @@ class Resource:
         # initialize properties
         self.data_properties = []
         self.object_properties = []
+
+        # initialize the graphic element
+        self.gitem = None
+        self.gitem_label = None
         
         # define coordinates
         self.x = None

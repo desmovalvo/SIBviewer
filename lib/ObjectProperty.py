@@ -22,3 +22,7 @@ class ObjectProperty:
             self.color = red
         else:
             self.color = blue
+
+        # graphic item
+        self.gitem = None
+        self.gitem_label = None

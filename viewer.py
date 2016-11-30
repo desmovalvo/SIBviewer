@@ -42,7 +42,6 @@ class Visualization(HasTraits):
     view = View(HGroup(Item('scene', editor=SceneEditor(scene_class=MayaviScene), height=640, width=800, show_label=False),
                        VGroup('_', Item('q', show_label=False), Item('query', show_label=False), 'classes', Item('refresh', show_label=False))))
    
-
     def __init__(self, kp):
 
         # super class initializer
@@ -62,9 +61,8 @@ class Visualization(HasTraits):
 
         # get and analyze knowledge
         p0, p1 = self.data_classifier()
-            
-        # plot 
-        self.sib_artist(p0, p1)
+        self.calculate_placement()
+        self.draw_plane0()
 
      
     def _query_fired(self):
@@ -72,14 +70,66 @@ class Visualization(HasTraits):
         """This method is executed when the query button is pressed"""    
 
         # clean the scene
-        self.scene.mlab.clf()
-        
+        # self.scene.mlab.clf()
+
+        # retrieve URI related to the query
+        # execute the sparql query
+        uri_list = []
+        if len(self.q) > 0:
+             uri_list = self.kp.custom_query(self.q)
+
+        # raise nodes
+        for resource in self.res_list.list.keys():
+            r = self.res_list.list[resource]      
+            if r.name in uri_list:
+
+                # remove the old object
+                r.gitem.remove() 
+                r.gitem_label.remove()
+
+                # design the new object on a different plane
+                r.z = 100
+                gitem, gitem_label = self.drawer.draw_resource(r)
+                r.gitem = gitem
+                r.gitem_label = gitem_label
+
+                # also raise the dp
+                for dp in r.data_properties:
+                    
+                    # delete the old property
+                    dp.gitem_object.remove()
+                    dp.gitem_objectlabel.remove()
+                    dp.gitem_predicate.remove()
+                    dp.gitem_predicatelabel.remove()
+                                        
+                    # update the coordinate
+                    dp.z = 100
+                    
+                    # draw the property                 
+                    a1, a2, a3, a4 = self.drawer.draw_data_property(dp)
+                    dp.gitem_object = a1
+                    dp.gitem_objectlabel = a2
+                    dp.gitem_predicate = a3
+                    dp.gitem_predicatelabel = a4
+                
+        # also redraw the object properties
+        for resource in self.res_list.list.keys():
+            r = self.res_list.list[resource]      
+            for op in r.object_properties:
+                
+                # delete the old object property
+                op.gitem.remove()
+                op.gitem_label.remove()
+                    
+                # draw the edge
+                item, itemlabel = self.drawer.draw_object_property(op)       
+                op.gitem = item
+                op.gitem_label = itemlabel
+
+            
         # retrieve and classify data
-        p0, p1 = self.data_classifier(self.q)
-        print "I DUE NUOVI PIANI SONO"
-        print p0
-        print p1
-        self.sib_artist(p0, p1)
+        # p0, p1 = self.data_classifier(self.q)
+        # self.sib_artist(p0, p1)
         
     
     def _refresh_fired(self):
@@ -156,14 +206,80 @@ class Visualization(HasTraits):
 
         # return
         return plane0, plane1
+
                 
+    def calculate_placement(self):
+
+        """This method is used to calculate the best
+        placement for nodes on the plane 0"""
+
+        # resource coordinates generator
+        num_points = len(self.res_list.list)
+        
+        # divide 360 by the number of points to get the base angle
+        if num_points > 0:
+            multiplier = 20
+            angle = 360 / num_points
+            iteration = 0 
+            for resource in self.res_list.list.keys():
+        
+                r = self.res_list.list[resource]        
+                x = multiplier * math.cos(math.radians(iteration * angle))
+                y = multiplier * math.sin(math.radians(iteration * angle))
+                self.res_list.list[resource].set_coordinates(x,y,0)
+        
+                # calculate coordinates for datatype properties
+                num_prop = len(r.data_properties)
+                try:
+                    dangle = 360 / num_prop
+                    diteration = 0
+                    for dp in r.data_properties:
+                        
+                        dmultiplier = 7
+                        dp.x = dmultiplier * math.cos(math.radians(diteration * dangle)) + r.get_coordinates()[0]
+                        dp.y = dmultiplier * math.sin(math.radians(diteration * dangle)) + r.get_coordinates()[1]
+                        dp.z = r.get_coordinates()[2]                                                
+                        diteration += 1
+                except:
+                    pass                
+                iteration += 1   
+        
+
+    def draw_plane0(self):
+
+        # draw plane
+        self.drawer.draw_plane(0)
+
+        # draw resources
+        for resource in self.res_list.list.keys():
+            r = self.res_list.list[resource]        
+            gitem, gitem_label = self.drawer.draw_resource(r)
+            r.gitem = gitem
+            r.gitem_label = gitem_label
+
+            # draw data properties
+            for dp in r.data_properties:
+                
+                # draw the property                
+                a1, a2, a3, a4 = self.drawer.draw_data_property(dp)
+                dp.gitem_object = a1
+                dp.gitem_objectlabel = a2
+                dp.gitem_predicate = a3
+                dp.gitem_predicatelabel = a4
+
+        # draw object properties
+        for resource in self.res_list.list.keys():                
+            for op in self.res_list.list[resource].object_properties:
+
+                # draw the edge
+                item, itemlabel = self.drawer.draw_object_property(op)       
+                op.gitem = item
+                op.gitem_label = itemlabel
+
         
     def sib_artist(self, plane0, plane1):
 
-        print plane0
-        print plane1
-        
-        # draw the plane
+        # draw the planes
         self.drawer.draw_plane(0)
         if len(plane1) > 0:
             self.drawer.draw_plane(1)                    

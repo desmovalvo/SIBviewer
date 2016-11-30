@@ -29,8 +29,9 @@ class Drawer:
         """Used to draw a resource"""
         
         # draw the resource
-        self.scene.mlab.points3d(resource.x, resource.y, resource.z, color=purple, colormap="copper", scale_factor=5, resolution=32)
-        self.scene.mlab.text(resource.x, resource.y, resource.name, z=resource.z, width=0.13)
+        r = self.scene.mlab.points3d(resource.x, resource.y, resource.z, color=purple, colormap="copper", scale_factor=5, resolution=32)
+        t = self.scene.mlab.text(resource.x, resource.y, resource.name, z=resource.z, width=0.13)
+        return r, t
         
 
     # object property drawer
@@ -51,8 +52,9 @@ class Drawer:
         pred_z = numpy.mean(w)
 
         # draw the edge and its name
-        self.scene.mlab.plot3d(u, v, w, color=op.color, tube_radius=.2)
-        self.scene.mlab.text(pred_x, pred_y, op.oproperty.split("#")[1], z=pred_z, width=0.13)
+        d = self.scene.mlab.plot3d(u, v, w, color=op.color, tube_radius=.2)
+        t = self.scene.mlab.text(pred_x, pred_y, op.oproperty.split("#")[1], z=pred_z, width=0.13)
+        return d, t
 
 
     # data property drawer
@@ -61,8 +63,8 @@ class Drawer:
         """Used to draw a data property"""
 
         # draw the data property
-        self.scene.mlab.points3d(dp.x, dp.y, dp.z, color=green, colormap="copper", scale_factor=2, resolution=32)
-        self.scene.mlab.text(dp.x, dp.y, dp.get_value(), z=dp.z, width=0.13)
+        o = self.scene.mlab.points3d(dp.x, dp.y, dp.z, color=green, colormap="copper", scale_factor=2, resolution=32)
+        ol = self.scene.mlab.text(dp.x, dp.y, dp.get_value(), z=dp.z, width=0.13)
 
         # get the subject of the property
         r = dp.resource
@@ -76,10 +78,12 @@ class Drawer:
         pred_z = numpy.mean(w)
 
         # draw the edge
-        self.scene.mlab.plot3d(u, v, w, color=green, tube_radius=.2)
+        p = self.scene.mlab.plot3d(u, v, w, color=green, tube_radius=.2)
 
         # write the name of the predicate
-        self.scene.mlab.text(pred_x, pred_y, str(dp.dproperty).split("#")[1], z=dp.z, width=0.13)
+        pl = self.scene.mlab.text(pred_x, pred_y, str(dp.dproperty).split("#")[1], z=dp.z, width=0.13)
+
+        return p, pl, o, ol
 
         
     # plane drawer
