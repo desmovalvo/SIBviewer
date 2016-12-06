@@ -92,7 +92,6 @@ class Drawer:
         """Used to draw a plane"""
 
         # draw the plane
-        print "Drawing a plane"
         s = numpy.random.random((100, 100))
         i = self.scene.mlab.imshow(s, colormap="gray", opacity=0.5)
         i.actor.position = [0,0,plane_number*100-4]

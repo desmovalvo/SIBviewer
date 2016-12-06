@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-
 # local requirements
 from lib.Drawer import *
 from lib.Resource import *
@@ -15,6 +14,7 @@ import sys
 import math
 import numpy
 import getopt
+import logging
 from uuid import uuid4
 from mayavi import mlab
 from random import randint
@@ -33,14 +33,51 @@ SIB_PORT = 10111
 class Visualization(HasTraits):
 
     # UI definition    
+    resources = Str
     scene      = Instance(MlabSceneModel, ())
-    q          = Str
-    query = Button()
+
+    # classes widgets
     possible_classes = List([])
-    classes    = Enum(0, values="possible_classes")
-    refresh    = Button()
-    view = View(HGroup(Item('scene', editor=SceneEditor(scene_class=MayaviScene), height=640, width=800, show_label=False),
-                       VGroup('_', Item('q', show_label=False), Item('query', show_label=False), 'classes', Item('refresh', show_label=False))))
+    classes = Enum(0, values="possible_classes", style="simple")
+    classes_w = Item('classes', show_label=True, label="Classes")
+    classes_rl = Button(label="Raise/Lower")
+    classes_rl_w = Item('classes_rl', show_label=False)
+
+    # resources widgets
+    possible_resources = List([])
+    resources = Enum(0, values="possible_resources", style="simple")
+    resources_w = Item('resources', show_label=True, label="Resources")
+    resources_rl = Button(label="Raise/Lower")
+    resources_rl_w = Item('resources_rl', show_label=False)
+
+    # properties widgets
+    possible_properties = List([])
+    properties = Enum(0, values="possible_properties", style="simple")
+    properties_w = Item('properties', show_label=True, label="Properties")
+    properties_rl = Button(label="Raise/Lower")
+    properties_rl_w = Item('properties_rl', show_label=False)
+
+    # query widgets
+    query = Str
+    query_w = Item('query')
+    query_rl = Button(label="Query") 
+    query_rl_w = Item('query_rl', show_label=False)
+
+    # refresh widgets
+    refresh = Button(label="Refresh")
+    refresh_w = Item('refresh', show_label=False)
+
+    # widgets
+    view = View(HGroup(VGroup(classes_w, 
+                              classes_rl_w, 
+                              resources_w, 
+                              resources_rl_w, 
+                              properties_w, 
+                              properties_rl_w,
+                              query_w,
+                              query_rl_w,
+                              refresh_w), 
+                       Item('scene', editor=SceneEditor(scene_class=MayaviScene), height=640, width=800, show_label=False)))
    
     def __init__(self, kp):
 
@@ -65,9 +102,11 @@ class Visualization(HasTraits):
         self.draw_plane0()
 
      
-    def _query_fired(self):
+    def _query_rl_fired(self):
 
         """This method is executed when the query button is pressed"""    
+
+        logging.debug("QUERY button pressed")
 
         # clean the scene
         # self.scene.mlab.clf()
@@ -75,8 +114,8 @@ class Visualization(HasTraits):
         # retrieve URI related to the query
         # execute the sparql query
         uri_list = []
-        if len(self.q) > 0:
-             uri_list = self.kp.custom_query(self.q)
+        if len(self.query) > 0:
+             uri_list = self.kp.custom_query(self.query)
 
         # raise nodes
         for resource in self.res_list.list.keys():
@@ -125,16 +164,13 @@ class Visualization(HasTraits):
                 item, itemlabel = self.drawer.draw_object_property(op)       
                 op.gitem = item
                 op.gitem_label = itemlabel
-
-            
-        # retrieve and classify data
-        # p0, p1 = self.data_classifier(self.q)
-        # self.sib_artist(p0, p1)
         
     
     def _refresh_fired(self):
         
         """This method is executed when the refresh button is pressed"""
+
+        logging.debug("REFRESH button pressed")
 
         # clean and redraw
         self.scene.mlab.clf()
@@ -171,8 +207,6 @@ class Visualization(HasTraits):
                 self.res_list.add_resource(sub_res)
                 
                 # determine the plane for the subject
-                print "CONFRONTO %s CON" % (str(sub))
-                print uri_list
                 if str(sub) in uri_list:
                     plane1.append(sub_res)
                 else:
@@ -355,7 +389,9 @@ class Visualization(HasTraits):
 ###############################################################
 if __name__ == "__main__":
 
-    
+    # setting logger
+    logging.basicConfig(level=logging.DEBUG)
+
     ###############################################################
     #
     # read command line options
