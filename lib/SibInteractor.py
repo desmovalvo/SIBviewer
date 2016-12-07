@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 # global requirements
+import rdflib
 from smart_m3.m3_kp_api import *
 
 # local requirements
@@ -20,6 +21,7 @@ class SibInteractor:
         self.host = host
         self.port = int(port)
         self.kp = m3_kp_api(False, self.host, self.port)
+        self.local_storage = None
 
 
     def get_classes(self):
@@ -43,6 +45,12 @@ class SibInteractor:
         # retrieve data
         self.kp.load_query_rdf(q_everything)
 
+        # # fill the local storage
+        # self.local_storage = rdflib.Graph()
+        # for t in self.kp.result_rdf_query:
+        #     self.local_storage.add(self.uri_to_uriref_triple(t))
+        # print len(self.local_storage)
+
         # return data
         return self.kp.result_rdf_query
 
@@ -59,3 +67,18 @@ class SibInteractor:
                     uri_list.append(str(variable[2]))
 
         return uri_list
+
+    
+    def uri_to_uriref_triple(self, triple):
+        return map(self.uri_to_uriref_node, triple)
+
+
+    def uri_to_uriref_node(self, node):
+        
+        print "analyzing: " + str(node)
+        if isinstance(node, URI):
+            node = rdflib.URIRef(str(node))
+        return node
+
+        
+            
