@@ -49,7 +49,6 @@ class TraitClass(HasTraits):
 class Visualization(HasTraits):
 
     # UI definition    
-    resources = Str
     scene      = Instance(MlabSceneModel, ())
 
     #################################################
@@ -58,62 +57,14 @@ class Visualization(HasTraits):
     #
     #################################################
 
-    lastlog = Str
-    lastlog_widget = Item('lastlog', show_label = False, style = 'readonly')
+    lastlog_string = Str
+    lastlog_widget = Item('lastlog_string', show_label = False, style = 'readonly')
 
     #################################################
     #
     # Widget for handling Resources
     #
     #################################################
-
-    # Resources list
-    rrr = List(TraitResource)
-
-    # Raise/Lower Button
-    resources_rl = Button(label="Raise/Lower Resource")      
-    resources_rl_w = Item('resources_rl', show_label=False)
-
-    #################################################
-    #
-    # Widget for handling Classes
-    #
-    #################################################
-
-    # new classes widget
-    ccc = List(TraitClass)
-
-    # classes widgets
-    classes_rl = Button(label="Raise/Lower Class")
-    classes_rl_w = Item('classes_rl', show_label=False)
-
-
-    #################################################
-    #
-    # Widget for handling DataProperties
-    #
-    #################################################
-
-
-    # new dataproperties widget
-    dpdpdp = List(TraitDataProperty)
-
-    # properties widgets
-    possible_properties = List([])
-    properties = Enum(0, values="possible_properties", style="simple")
-    properties_w = Item('properties', show_label=True, label="Properties")
-    properties_rl = Button(label="Raise/Lower")
-    properties_rl_w = Item('properties_rl', show_label=False)
-
-    # query widgets
-    query = Str
-    query_w = Item('query', show_label=False)
-    query_rl = Button(label="Query") 
-    query_rl_w = Item('query_rl', show_label=False)
-
-    # refresh widgets
-    refresh = Button(label="Refresh")
-    refresh_w = Item('refresh', show_label=False)
 
     # resource table_editor
     resources_table_editor = TableEditor(
@@ -124,7 +75,21 @@ class Visualization(HasTraits):
         auto_size   = False,
         orientation = 'vertical',
         row_factory = TraitResource)
-    
+
+    # Resources list
+    resources_list = List(TraitResource)
+    resources_list_widget = Item('resources_list', show_label = False, editor = resources_table_editor, padding = 10),
+
+    # Raise/Lower Button
+    resources_button = Button(label="Raise/Lower Resource")      
+    resources_button_widget = Item('resources_button', show_label=False)
+
+    #################################################
+    #
+    # Widget for handling Classes
+    #
+    #################################################
+
     # class table_editor
     classes_table_editor = TableEditor(
         columns = [ObjectColumn(name='class_name', width = 1)],
@@ -134,6 +99,20 @@ class Visualization(HasTraits):
         auto_size = False,
         orientation = 'vertical',
         row_factory = TraitClass)
+
+    # new classes widget
+    classes_list = List(TraitClass)
+    classes_list_widget = Item('classes_list', show_label = False, editor = classes_table_editor, padding = 10),
+
+    # classes button
+    classes_button = Button(label="Raise/Lower Class")
+    classes_button_widget = Item('classes_button', show_label=False)
+
+    #################################################
+    #
+    # Widget for handling DataProperties
+    #
+    #################################################
 
     # dataproperty table_editor
     dataproperty_table_editor = TableEditor(
@@ -145,15 +124,41 @@ class Visualization(HasTraits):
         orientation = 'vertical',
         row_factory = TraitDataProperty)
 
+    # new dataproperties widget
+    dataproperties_list = List(TraitDataProperty)
+    dataproperties_list_widget = Item('dataproperties_list', show_label = False, editor = dataproperty_table_editor, padding = 10),
+
+    # properties widgets
+    dataproperties_button = Button(label="Raise/Lower")
+    dataproperties_button_widget = Item('dataproperties_button', show_label=False)
+
+    #################################################
+    #
+    # Widget for handling custom queries
+    #
+    #################################################
+
+    # query widgets
+    query_string = Str
+    query_entry_widget = Item('query_string', show_label=False)
+    query_button = Button(label="SPARQL Query") 
+    query_button_widget = Item('query_button', show_label=False)
+
+    #################################################
+    #
+    # Widget for refreshing the view
+    #
+    #################################################
+
+    # refresh widgets
+    refresh = Button(label="Refresh")
+    refresh_w = Item('refresh', show_label=False)
+   
     # widgets
-    view = View(VGroup(HGroup(VGroup(Item('rrr', show_label = False, editor = resources_table_editor, padding = 10),
-                              resources_rl_w, 
-                              Item('ccc', show_label = False, editor = classes_table_editor, padding = 10),
-                              classes_rl_w, 
-                              Item('dpdpdp', show_label = False, editor = dataproperty_table_editor, padding = 10),
-                              properties_rl_w,
-                              query_w,
-                              query_rl_w,
+    view = View(VGroup(HGroup(VGroup(resources_list_widget, resources_button_widget, # resources fields
+                              classes_list_widget, classes_button_widget, # classes fields
+                              dataproperties_list_widget, dataproperties_button_widget, # dp fields
+                              query_entry_widget, query_button_widget, # query fields
                               refresh_w), 
                               Item('scene', editor=SceneEditor(scene_class=MayaviScene), height=640, width=800, show_label=False))), lastlog_widget)
    
@@ -169,7 +174,7 @@ class Visualization(HasTraits):
         # fill the list of classes
         classes = self.kp.get_classes()
         for c in classes:
-            self.ccc.append(TraitClass(class_name = c))
+            self.classes_list.append(TraitClass(class_name = c))
 
         # initialize data structures
         self.res_list = ResourceList()
@@ -180,18 +185,19 @@ class Visualization(HasTraits):
         self.draw_plane0()
 
      
-    def _query_rl_fired(self):
+    def _query_button_fired(self):
 
         """This method is executed when the query button is pressed"""    
 
         # debug print
         logging.debug("QUERY button pressed")
+        self.lastlog_string = "QUERY button pressed"
 
         # retrieve URI related to the query
         # execute the sparql query
         uri_list = []
-        if len(self.query) > 0:
-             uri_list = self.kp.custom_query(self.query)
+        if len(self.query_string) > 0:
+             uri_list = self.kp.custom_query(self.query_string)
 
         # raise nodes
         for resource in self.res_list.list.keys():
@@ -242,7 +248,7 @@ class Visualization(HasTraits):
                 op.gitem_label = itemlabel
         
 
-    def _classes_rl_fired(self):
+    def _classes_button_fired(self):
         
         # debug print
         logging.debug("CLASSES RAISE/LOWER button pressed")
@@ -406,7 +412,7 @@ class Visualization(HasTraits):
                 op.gitem = item
                 op.gitem_label = itemlabel
 
-            self.rrr.append(TraitResource(resource_name = resource))
+            self.resources_list.append(TraitResource(resource_name = resource))
 
         
     def sib_artist(self, plane0, plane1):
