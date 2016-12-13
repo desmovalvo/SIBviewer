@@ -42,6 +42,10 @@ triple_list.append(Triple(URI(ns + "Person3_URI"), URI(ns + "hasNickname"), Lite
 triple_list.append(Triple(URI(ns + "Person1_URI"), URI(ns + "hasFullname"), Literal("Fabio Viola")))
 triple_list.append(Triple(URI(ns + "Person2_URI"), URI(ns + "hasFullname"), Literal("Alfredo D'Elia")))
 triple_list.append(Triple(URI(ns + "Person3_URI"), URI(ns + "hasFullname"), Literal("Tullio Salmon")))
+triple_list.append(Triple(URI(ns + "Interoperability_URI"), URI(rdf + "type"), URI(ns + "Course")))
+triple_list.append(Triple(URI(ns + "Person1_URI"), URI(ns + "hasCourse"), URI(ns + "Person")))
+triple_list.append(Triple(URI(ns + "Person2_URI"), URI(ns + "hasCourse"), URI(ns + "Person")))
+
 
 # put data into the SIB
 kp.load_rdf_insert(triple_list)

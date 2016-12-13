@@ -15,10 +15,23 @@ import math
 import numpy
 import logging
 from traits.api import HasTraits, Range, Str, Instance, on_trait_change, Enum, Button, List
-from traitsui.api import View, Item, VGroup, HGroup
+from traitsui.api import View, Item, Group, VGroup, HGroup, ListEditor, ListStrEditor, TableEditor
+from traitsui.table_column import ObjectColumn, ExpressionColumn
+from traitsui.table_filter import EvalFilterTemplate, MenuFilterTemplate, RuleFilterTemplate, EvalTableFilter
 from tvtk.pyface.scene_editor import SceneEditor
 from mayavi.tools.mlab_scene_model import MlabSceneModel
 from mayavi.core.ui.mayavi_scene import MayaviScene
+
+class TraitResource(HasTraits):
+    resource_name = Str
+
+    traits_view = View(
+        'resource_name',
+        title   = 'Create new resource',
+        width   = 0.18,
+        buttons = [ 'OK', 'Cancel' ]
+    )
+
 
 # UI
 class Visualization(HasTraits):
@@ -58,8 +71,34 @@ class Visualization(HasTraits):
     refresh = Button(label="Refresh")
     refresh_w = Item('refresh', show_label=False)
 
+    # table_editor
+    table_editor = TableEditor(
+        columns = [ ObjectColumn( name = 'resource_name', width = 0.20 ),
+                    ExpressionColumn(
+                        label = 'Full Name',
+                        width = 0.30,
+                        expression = "'%s %s' % (object.first_name, "
+                        "object.last_name )" )],
+        deletable   = True,
+        sort_model  = True,
+        auto_size   = False,
+        orientation = 'vertical',
+        edit_view   = View(
+            Group( 'resource_name',
+                   show_border = True
+               ),
+            resizable = True
+        ),
+        filters     = [ EvalFilterTemplate, MenuFilterTemplate, RuleFilterTemplate ],
+        search      = EvalTableFilter(),
+        show_toolbar = True,
+        row_factory = TraitResource )
+    
     # widgets
-    view = View(HGroup(VGroup(classes_w, 
+    rrr = List(TraitResource)
+    rrr = [TraitResource(resource_name = "Fake")]
+    view = View(HGroup(VGroup(Item('rrr', show_label = False, editor = table_editor),
+                              classes_w, 
                               classes_rl_w, 
                               resources_w, 
                               resources_rl_w, 
