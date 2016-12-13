@@ -15,7 +15,7 @@ import math
 import numpy
 import logging
 from traits.api import HasTraits, Range, Str, Instance, on_trait_change, Enum, Button, List
-from traitsui.api import View, Item, Group, VGroup, HGroup, ListEditor, ListStrEditor, TableEditor
+from traitsui.api import View, Item, Group, VGroup, HGroup, ListEditor, ListStrEditor, TableEditor, TextEditor
 from traitsui.table_column import ObjectColumn, ExpressionColumn
 from traitsui.table_filter import EvalFilterTemplate, MenuFilterTemplate, RuleFilterTemplate, EvalTableFilter
 from tvtk.pyface.scene_editor import SceneEditor
@@ -51,6 +51,15 @@ class Visualization(HasTraits):
     # UI definition    
     resources = Str
     scene      = Instance(MlabSceneModel, ())
+
+    #################################################
+    #
+    # Widget for Log messages
+    #
+    #################################################
+
+    lastlog = Str
+    lastlog_widget = Item('lastlog', show_label = False, style = 'readonly')
 
     #################################################
     #
@@ -98,7 +107,7 @@ class Visualization(HasTraits):
 
     # query widgets
     query = Str
-    query_w = Item('query')
+    query_w = Item('query', show_label=False)
     query_rl = Button(label="Query") 
     query_rl_w = Item('query_rl', show_label=False)
 
@@ -137,19 +146,16 @@ class Visualization(HasTraits):
         row_factory = TraitDataProperty)
 
     # widgets
-    view = View(HGroup(VGroup(Item('rrr', show_label = False, editor = resources_table_editor, padding = 10),
+    view = View(VGroup(HGroup(VGroup(Item('rrr', show_label = False, editor = resources_table_editor, padding = 10),
                               resources_rl_w, 
                               Item('ccc', show_label = False, editor = classes_table_editor, padding = 10),
                               classes_rl_w, 
                               Item('dpdpdp', show_label = False, editor = dataproperty_table_editor, padding = 10),
-#                              classes_w, 
-#                              resources_w, 
-#                              properties_w, 
                               properties_rl_w,
                               query_w,
                               query_rl_w,
                               refresh_w), 
-                       Item('scene', editor=SceneEditor(scene_class=MayaviScene), height=640, width=800, show_label=False)))
+                              Item('scene', editor=SceneEditor(scene_class=MayaviScene), height=640, width=800, show_label=False))), lastlog_widget)
    
     def __init__(self, kp):
 
@@ -240,6 +246,7 @@ class Visualization(HasTraits):
         
         # debug print
         logging.debug("CLASSES RAISE/LOWER button pressed")
+        self.lastlog = "CLASSES RAISE/LOWER button pressed"
 
 
     def _resources_rl_fired(self):
