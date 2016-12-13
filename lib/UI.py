@@ -22,15 +22,27 @@ from tvtk.pyface.scene_editor import SceneEditor
 from mayavi.tools.mlab_scene_model import MlabSceneModel
 from mayavi.core.ui.mayavi_scene import MayaviScene
 
+############################################################
+#
+# The following classes are used to draw tables on the
+# User Interface
+#
+############################################################
+
 class TraitResource(HasTraits):
     resource_name = Str
 
-    traits_view = View(
-        'resource_name',
-        title   = 'Create new resource',
-        width   = 0.18,
-        buttons = [ 'OK', 'Cancel' ]
-    )
+class TraitObjectProperty(HasTraits):
+    obprop_name = Str
+    obprop_range = Str
+    obprop_domain = Str
+
+class TraitDataProperty(HasTraits):
+    dprop_name = Str
+    dprop_range = Str
+
+class TraitClass(HasTraits):
+    class_name = Str
 
 
 # UI
@@ -40,19 +52,42 @@ class Visualization(HasTraits):
     resources = Str
     scene      = Instance(MlabSceneModel, ())
 
+    #################################################
+    #
+    # Widget for handling Resources
+    #
+    #################################################
+
+    # Resources list
+    rrr = List(TraitResource)
+
+    # Raise/Lower Button
+    resources_rl = Button(label="Raise/Lower Resource")      
+    resources_rl_w = Item('resources_rl', show_label=False)
+
+    #################################################
+    #
+    # Widget for handling Classes
+    #
+    #################################################
+
+    # new classes widget
+    ccc = List(TraitClass)
+
     # classes widgets
-    possible_classes = List([])
-    classes = Enum(0, values="possible_classes", style="simple")
-    classes_w = Item('classes', show_label=True, label="Classes")
-    classes_rl = Button(label="Raise/Lower")
+    classes_rl = Button(label="Raise/Lower Class")
     classes_rl_w = Item('classes_rl', show_label=False)
 
-    # resources widgets
-    possible_resources = List([])
-    resources = Enum(0, values="possible_resources", style="simple")
-    resources_w = Item('resources', show_label=True, label="Resources")
-    resources_rl = Button(label="Raise/Lower")
-    resources_rl_w = Item('resources_rl', show_label=False)
+
+    #################################################
+    #
+    # Widget for handling DataProperties
+    #
+    #################################################
+
+
+    # new dataproperties widget
+    dpdpdp = List(TraitDataProperty)
 
     # properties widgets
     possible_properties = List([])
@@ -71,38 +106,45 @@ class Visualization(HasTraits):
     refresh = Button(label="Refresh")
     refresh_w = Item('refresh', show_label=False)
 
-    # table_editor
-    table_editor = TableEditor(
-        columns = [ ObjectColumn( name = 'resource_name', width = 0.20 ),
-                    ExpressionColumn(
-                        label = 'Full Name',
-                        width = 0.30,
-                        expression = "'%s %s' % (object.first_name, "
-                        "object.last_name )" )],
-        deletable   = True,
+    # resource table_editor
+    resources_table_editor = TableEditor(
+        columns = [ObjectColumn(name = 'resource_name', width = 1)],
+        deletable = False,
+        editable = False,
         sort_model  = True,
         auto_size   = False,
         orientation = 'vertical',
-        edit_view   = View(
-            Group( 'resource_name',
-                   show_border = True
-               ),
-            resizable = True
-        ),
-        filters     = [ EvalFilterTemplate, MenuFilterTemplate, RuleFilterTemplate ],
-        search      = EvalTableFilter(),
-        show_toolbar = True,
-        row_factory = TraitResource )
+        row_factory = TraitResource)
     
+    # class table_editor
+    classes_table_editor = TableEditor(
+        columns = [ObjectColumn(name='class_name', width = 1)],
+        deletable = False,
+        editable = False,
+        sort_model = True,
+        auto_size = False,
+        orientation = 'vertical',
+        row_factory = TraitClass)
+
+    # dataproperty table_editor
+    dataproperty_table_editor = TableEditor(
+        columns = [ObjectColumn(name = 'dp_name', width = 1, label = "DataProperty"), ObjectColumn(name = 'dp_range', width = 1, label = "Range")],
+        deletable = False,
+        editable = False,
+        sort_model  = True,
+        auto_size   = False,
+        orientation = 'vertical',
+        row_factory = TraitDataProperty)
+
     # widgets
-    rrr = List(TraitResource)
-    rrr = [TraitResource(resource_name = "Fake")]
-    view = View(HGroup(VGroup(Item('rrr', show_label = False, editor = table_editor),
-                              classes_w, 
-                              classes_rl_w, 
-                              resources_w, 
+    view = View(HGroup(VGroup(Item('rrr', show_label = False, editor = resources_table_editor, padding = 10),
                               resources_rl_w, 
-                              properties_w, 
+                              Item('ccc', show_label = False, editor = classes_table_editor, padding = 10),
+                              classes_rl_w, 
+                              Item('dpdpdp', show_label = False, editor = dataproperty_table_editor, padding = 10),
+#                              classes_w, 
+#                              resources_w, 
+#                              properties_w, 
                               properties_rl_w,
                               query_w,
                               query_rl_w,
@@ -121,7 +163,7 @@ class Visualization(HasTraits):
         # fill the list of classes
         classes = self.kp.get_classes()
         for c in classes:
-            self.possible_classes.append(c)
+            self.ccc.append(TraitClass(class_name = c))
 
         # initialize data structures
         self.res_list = ResourceList()
@@ -356,6 +398,8 @@ class Visualization(HasTraits):
                 item, itemlabel = self.drawer.draw_object_property(op)       
                 op.gitem = item
                 op.gitem_label = itemlabel
+
+            self.rrr.append(TraitResource(resource_name = resource))
 
         
     def sib_artist(self, plane0, plane1):
