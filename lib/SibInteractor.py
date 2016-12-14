@@ -42,14 +42,34 @@ class SibInteractor:
 
         """Method to retrieve the entire knowledge base"""
 
+        # initialize and fill the local storage
+        self.local_storage = rdflib.Graph()
+
         # retrieve data
         self.kp.load_query_rdf(q_everything)
 
-        # # fill the local storage
-        # self.local_storage = rdflib.Graph()
-        # for t in self.kp.result_rdf_query:
-        #     self.local_storage.add(self.uri_to_uriref_triple(t))
-        # print len(self.local_storage)
+        # fill the local storage
+        for sib_triple in self.kp.result_rdf_query:
+
+            # get the fields
+            s, p, o = sib_triple
+            
+            # analyze the subject
+            # NOTE: currently we suppose that all the subjects are URIs
+            # NOTE: this must be generalized to admit BNodes.
+            ss = rdflib.URIRef(str(s))
+
+            # analyze the predicate
+            pp = rdflib.URIRef(str(p))
+
+            # analyze the object            
+            if isinstance(o, URI):
+                oo = rdflib.URIRef(str(o))
+            else:
+                oo = rdflib.Literal(str(o))
+
+            # add the new triple to the local storage
+            self.local_storage.add((ss, pp, oo))
 
         # return data
         return self.kp.result_rdf_query
@@ -68,17 +88,21 @@ class SibInteractor:
 
         return uri_list
 
-    
-    def uri_to_uriref_triple(self, triple):
-        return map(self.uri_to_uriref_node, triple)
 
+    def get_data_properties(self):
 
-    def uri_to_uriref_node(self, node):
+        """Method used to retrieve alle the data
+         properties defined in the ontology"""
+
+        qres = self.local_storage.query(q_dproperties)
+        return qres
         
-        print "analyzing: " + str(node)
-        if isinstance(node, URI):
-            node = rdflib.URIRef(str(node))
-        return node
+    def get_object_properties(self):
+
+        """Method used to retrieve alle the data
+         properties defined in the ontology"""
+        
+        qres = self.local_storage.query(q_dproperties)
+        return qres
 
         
-            

@@ -128,9 +128,25 @@ class Visualization(HasTraits):
     dataproperties_list = List(TraitDataProperty)
     dataproperties_list_widget = Item('dataproperties_list', show_label = False, editor = dataproperty_table_editor, padding = 10),
 
-    # properties widgets
-    dataproperties_button = Button(label="Raise/Lower")
-    dataproperties_button_widget = Item('dataproperties_button', show_label=False)
+    #################################################
+    #
+    # Widget for handling Objectproperties
+    #
+    #################################################
+
+    # objectproperty table_editor
+    objectproperty_table_editor = TableEditor(
+        columns = [ObjectColumn(name = 'op_name', width = 1, label = "Objectproperty"), ObjectColumn(name = 'op_domain', width = 1, label = "Domain"), ObjectColumn(name = 'op_range', width = 1, label = "Range")],
+        deletable = False,
+        editable = False,
+        sort_model  = True,
+        auto_size   = False,
+        orientation = 'vertical',
+        row_factory = TraitObjectProperty)
+
+    # new objectproperties widget
+    objectproperties_list = List(TraitObjectProperty)
+    objectproperties_list_widget = Item('objectproperties_list', show_label = False, editor = objectproperty_table_editor, padding = 10),
 
     #################################################
     #
@@ -157,20 +173,62 @@ class Visualization(HasTraits):
     # widgets
     view = View(VGroup(HGroup(VGroup(resources_list_widget, resources_button_widget, # resources fields
                               classes_list_widget, classes_button_widget, # classes fields
-                              dataproperties_list_widget, dataproperties_button_widget, # dp fields
+                              dataproperties_list_widget, # dp fields
+                              objectproperties_list_widget, # op fields
                               query_entry_widget, query_button_widget, # query fields
                               refresh_w), 
                               Item('scene', editor=SceneEditor(scene_class=MayaviScene), height=640, width=800, show_label=False))), lastlog_widget)
    
+    # constructor
     def __init__(self, kp):
+
+        """Initializer of the UI class"""
+
+        ###################################################
+        #
+        # Initialize the scene
+        #
+        ###################################################
 
         # super class initializer
         HasTraits.__init__(self)
 
+        # Drawer instance
+        self.drawer = Drawer(self.scene)
+
+        ###################################################
+        #
+        # Retrieve Data
+        #
+        ###################################################
+
         # store the kp
         self.kp = kp
-        self.drawer = Drawer(self.scene)
+        self.kp.get_everything()
         
+        ###################################################
+        #
+        # Fill the side lists
+        #
+        ###################################################
+        
+        # get data properties
+        dps = self.kp.get_data_properties()
+        # self.dataproperties_list.append(TraitDataProperty(dprop_name = dp, dprop_range = "foo"))
+
+        # get object properties
+        ops = self.kp.get_object_properties()    
+
+        # TODO: get instances
+
+        # TODO: get classes
+
+        ###################################################
+        #
+        # Draw
+        #
+        ###################################################
+
         # fill the list of classes
         classes = self.kp.get_classes()
         for c in classes:
