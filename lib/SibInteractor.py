@@ -106,3 +106,15 @@ class SibInteractor:
         return qres
 
         
+    def get_stats(self):
+
+        """Stats of the triples"""
+        
+        ct = None
+        for res in self.local_storage.query(q_counttriples):
+            ct = res[0]
+            
+        out_string = "KB Stats:\n- Triples: %s" % ct
+        print out_string
+
+        return out_string

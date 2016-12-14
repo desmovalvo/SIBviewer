@@ -162,6 +162,15 @@ class Visualization(HasTraits):
 
     #################################################
     #
+    # Widget for the stats
+    #
+    #################################################
+
+    stats_string = Str
+    stats_entry_widget = Item('stats_string', show_label=False, style="readonly")    
+
+    #################################################
+    #
     # Widget for refreshing the view
     #
     #################################################
@@ -172,11 +181,12 @@ class Visualization(HasTraits):
    
     # widgets
     view = View(VGroup(HGroup(VGroup(resources_list_widget, resources_button_widget, # resources fields
-                              classes_list_widget, classes_button_widget, # classes fields
-                              dataproperties_list_widget, # dp fields
-                              objectproperties_list_widget, # op fields
-                              query_entry_widget, query_button_widget, # query fields
-                              refresh_w), 
+                                     classes_list_widget, classes_button_widget, # classes fields
+                                     dataproperties_list_widget, # dp fields
+                                     objectproperties_list_widget, # op fields
+                                     query_entry_widget, query_button_widget, # query fields
+                                     stats_entry_widget,
+                                     refresh_w), 
                               Item('scene', editor=SceneEditor(scene_class=MayaviScene), height=640, width=800, show_label=False))), lastlog_widget)
    
     # constructor
@@ -222,6 +232,9 @@ class Visualization(HasTraits):
         # TODO: get instances
 
         # TODO: get classes
+
+        # get stats
+        self.stats_string = self.kp.get_stats()
 
         ###################################################
         #
