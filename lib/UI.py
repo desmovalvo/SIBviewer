@@ -96,6 +96,7 @@ class Visualization(HasTraits):
     #################################################
 
     # class table_editor
+    selected_class = Instance(TraitClass)
     classes_table_editor = TableEditor(
         columns = [ObjectColumn(name='class_name', width = 1)],
         deletable = False,
@@ -103,6 +104,7 @@ class Visualization(HasTraits):
         sort_model = True,
         auto_size = False,
         orientation = 'vertical',
+        selected = 'selected_class',
         row_factory = TraitClass)
 
     # new classes widget
@@ -198,9 +200,6 @@ class Visualization(HasTraits):
                                      refresh_w), 
                               Item('scene', editor=SceneEditor(scene_class=MayaviScene), height=640, width=800, show_label=False))), lastlog_widget)
    
-    def stampa(self):
-        print "ASDFAF"
-
     # constructor
     def __init__(self, kp):
 
@@ -343,10 +342,22 @@ class Visualization(HasTraits):
 
     def _classes_button_fired(self):
         
+        # getting selected class
+        c = self.selected_class.class_name
+    
         # debug print
-        logging.debug("CLASS RAISE/LOWER button pressed")
-        self.lastlog = "CLASSES RAISE/LOWER button pressed"
-        print self.classes_list
+        logging.debug("Raising instances of class %s" % c)
+        self.lastlog_string = "Raising instances of class %s" % c    
+
+        # getting instances of classs c
+        uri_list = []
+        qres = self.kp.get_instances_of(c)
+        for res in qres:
+            uri_list.append(str(res[0]))
+
+        # raising instances
+        self.redraw(uri_list)
+        
 
 
     def _resources_button_fired(self):
@@ -356,7 +367,7 @@ class Visualization(HasTraits):
 
         # debug print
         logging.debug("Raising resource %s" % r)
-        self.lastlog = "Raising resource %s" % r
+        self.lastlog_string = "Raising resource %s" % r
         
         # raise
         self.redraw([r])

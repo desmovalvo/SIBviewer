@@ -47,6 +47,15 @@ class SibInteractor:
         return qres 
         
 
+    def get_instances_of(self, classname):
+        
+        """Method to retrieve all the instances
+        of the given class"""
+        
+        # retrieve data
+        qres = self.local_storage.query(q_instances_of_class % classname)
+        return qres
+
 
     def get_everything(self):
 
