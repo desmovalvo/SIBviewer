@@ -21,7 +21,7 @@ WHERE {
   { ?class rdf:type rdfs:Class }
 }"""
 
-# The following query is used to retrieve alle the instances
+# The following query is used to retrieve all the instances
 q_instances = """PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX owl:<http://www.w3.org/2002/07/owl#> 
 PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#> 
@@ -30,6 +30,8 @@ WHERE {
   ?instance rdf:type ?something
 }"""
 
+# The following query is used to retrieve all the instances
+# of the specified class
 q_instances_of_class = """PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX owl:<http://www.w3.org/2002/07/owl#> 
 PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#> 
@@ -81,3 +83,13 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT (COUNT(*) AS ?no) { ?s ?p ?o  }
 """
+
+# The following query is used to get all the subjects with a
+# given datatype property
+q_instances_with_dp = """PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX owl:<http://www.w3.org/2002/07/owl#> 
+PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#> 
+SELECT ?instance
+WHERE {
+  ?instance <%s> ?object
+}"""

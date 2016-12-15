@@ -57,6 +57,26 @@ class SibInteractor:
         return qres
 
 
+    def get_instances_with_dp(self, dp):
+        
+        """Method to retrieve all the instances
+        with a given datatype property"""
+
+        # retrieve data
+        qres = self.local_storage.query(q_instances_with_dp % dp)
+        return qres
+
+
+    def get_instances_with_op(self, op):
+        
+        """Method to retrieve all the instances
+        with a given object property"""
+
+        # retrieve data
+        qres = self.local_storage.query(q_instances_with_dp % op)
+        return qres
+
+
     def get_everything(self):
 
         """Method to retrieve the entire knowledge base"""

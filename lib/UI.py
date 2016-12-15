@@ -122,6 +122,7 @@ class Visualization(HasTraits):
     #################################################
 
     # dataproperty table_editor
+    selected_dp = Instance(TraitDataProperty)
     dataproperty_table_editor = TableEditor(
         columns = [ObjectColumn(name = 'dp_name', width = 1, label = "DataProperty"), 
                    ObjectColumn(name = 'dp_domain', width = 1, label = "Domain"), 
@@ -131,11 +132,17 @@ class Visualization(HasTraits):
         sort_model  = True,
         auto_size   = False,
         orientation = 'vertical',
+        selected = 'selected_dp',
         row_factory = TraitDataProperty)
 
     # new dataproperties widget
     dataproperties_list = List(TraitDataProperty)
     dataproperties_list_widget = Item('dataproperties_list', show_label = False, editor = dataproperty_table_editor, padding = 10),
+
+    # Raise/Lower Button
+    dataproperties_button = Button(label="Raise/Lower Datatype Property")      
+    dataproperties_button_widget = Item('dataproperties_button', show_label=False)
+
 
     #################################################
     #
@@ -144,6 +151,7 @@ class Visualization(HasTraits):
     #################################################
 
     # objectproperty table_editor
+    selected_op = Instance(TraitObjectProperty)
     objectproperty_table_editor = TableEditor(
         columns = [ObjectColumn(name = 'op_name', width = 1, label = "Objectproperty"), 
                    ObjectColumn(name = 'op_domain', width = 1, label = "Domain"), 
@@ -153,11 +161,16 @@ class Visualization(HasTraits):
         sort_model  = True,
         auto_size   = False,
         orientation = 'vertical',
+        selected = 'selected_op',
         row_factory = TraitObjectProperty)
 
     # new objectproperties widget
     objectproperties_list = List(TraitObjectProperty)
     objectproperties_list_widget = Item('objectproperties_list', show_label = False, editor = objectproperty_table_editor, padding = 10),
+
+    # Raise/Lower Button
+    objectproperties_button = Button(label="Raise/Lower Object Property")      
+    objectproperties_button_widget = Item('objectproperties_button', show_label=False)
 
     #################################################
     #
@@ -193,8 +206,8 @@ class Visualization(HasTraits):
     # widgets
     view = View(VGroup(HGroup(VGroup(resources_list_widget, resources_button_widget, # resources fields
                                      classes_list_widget, classes_button_widget, # classes fields
-                                     dataproperties_list_widget, # dp fields
-                                     objectproperties_list_widget, # op fields
+                                     dataproperties_list_widget, dataproperties_button_widget, # dp fields
+                                     objectproperties_list_widget, objectproperties_button_widget, # op fields
                                      query_entry_widget, query_button_widget, # query fields
                                      stats_entry_widget,
                                      refresh_w), 
@@ -356,8 +369,7 @@ class Visualization(HasTraits):
             uri_list.append(str(res[0]))
 
         # raising instances
-        self.redraw(uri_list)
-        
+        self.redraw(uri_list)        
 
 
     def _resources_button_fired(self):
@@ -373,10 +385,42 @@ class Visualization(HasTraits):
         self.redraw([r])
 
 
-    def _properties_rl_fired(self):
+    def _dataproperties_button_fired(self):
         
+        # getting selected datatype property
+        dp = self.selected_dp.dp_name
+    
         # debug print
-        logging.debug("PROPERTIES RAISE/LOWER button pressed")
+        logging.debug("Raising instances of class %s" % dp)
+        self.lastlog_string = "Raising instances with datatype property %s" % dp
+
+        # getting instances with dataproperty dp
+        uri_list = []
+        qres = self.kp.get_instances_with_dp(dp)
+        for res in qres:
+            uri_list.append(str(res[0]))
+
+        # raising instances
+        self.redraw(uri_list)
+
+
+    def _objectproperties_button_fired(self):
+        
+        # getting selected object property
+        op = self.selected_op.op_name
+    
+        # debug print
+        logging.debug("Raising instances with object property %s" % op)
+        self.lastlog_string = "Raising instances with object property %s" % op
+
+        # getting instances with object property op
+        uri_list = []
+        qres = self.kp.get_instances_with_op(op)
+        for res in qres:
+            uri_list.append(str(res[0]))
+
+        # raising instances
+        self.redraw(uri_list)
                 
 
     def _refresh_fired(self):
