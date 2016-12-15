@@ -38,6 +38,16 @@ class SibInteractor:
         return classes
 
 
+    def get_instances(self):
+        
+        """Method to retrieve all the instances"""
+        
+        # retrieve data
+        qres = self.local_storage.query(q_instances)
+        return qres 
+        
+
+
     def get_everything(self):
 
         """Method to retrieve the entire knowledge base"""
@@ -102,7 +112,7 @@ class SibInteractor:
         """Method used to retrieve alle the data
          properties defined in the ontology"""
         
-        qres = self.local_storage.query(q_dproperties)
+        qres = self.local_storage.query(q_oproperties)
         return qres
 
         

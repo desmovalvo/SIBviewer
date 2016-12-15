@@ -21,17 +21,31 @@ WHERE {
   { ?class rdf:type rdfs:Class }
 }"""
 
+# The following query is used to retrieve alle the instances
+q_instances = """PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX owl:<http://www.w3.org/2002/07/owl#> 
+PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#> 
+SELECT DISTINCT ?instance
+WHERE {
+  ?instance rdf:type ?something
+}"""
 
 # The following query is used to retrieve the list
 # of all the data properties defined in the ontology
 q_dproperties = """PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX owl:<http://www.w3.org/2002/07/owl#> 
 PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#> 
-SELECT DISTINCT ?property
+SELECT DISTINCT ?property ?domain ?range
 WHERE {
-  { ?property rdf:type owl:DatatypeProperty }
+  { ?property rdf:type owl:DatatypeProperty .
+    OPTIONAL { ?property rdfs:range ?range } .
+    OPTIONAL { ?property rdfs:domain ?domain }
+   }
   UNION 
-  { ?property rdf:type rdfs:Datatype }
+  { ?property rdf:type rdfs:Datatype .
+    OPTIONAL { ?property rdfs:range ?range } .
+    OPTIONAL { ?property rdfs:domain ?domain }
+  }
 }"""
 
 # The following query is used to retrieve the list
@@ -39,11 +53,17 @@ WHERE {
 q_oproperties = """PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX owl:<http://www.w3.org/2002/07/owl#> 
 PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#> 
-SELECT DISTINCT ?property
+SELECT DISTINCT ?property ?domain ?range
 WHERE {
-  { ?property rdf:type owl:ObjectProperty }
+  { ?property rdf:type owl:ObjectProperty .
+    OPTIONAL { ?property rdfs:range ?range } .
+    OPTIONAL { ?property rdfs:domain ?domain }
+   }
   UNION 
-  { ?property rdf:type rdfs:Datatype }
+  { ?property rdf:type rdfs:Datatype .
+    OPTIONAL { ?property rdfs:range ?range } .
+    OPTIONAL { ?property rdfs:domain ?domain }
+  }
 }"""
 
 # Count all the triples
@@ -53,10 +73,3 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT (COUNT(*) AS ?no) { ?s ?p ?o  }
 """
-
-# Count all instances of classes
-q_countinstances = """PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-PREFIX owl: <http://www.w3.org/2002/07/owl#>
-PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT  ?class (COUNT(?s) AS ?count ) { ?s a ?class } GROUP BY ?class ORDER BY ?count"""

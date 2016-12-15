@@ -11,6 +11,7 @@ from lib.SibInteractor import *
 from lib.ObjectProperty import *
 
 # global requirements
+import pdb
 import math
 import numpy
 import logging
@@ -21,6 +22,7 @@ from traitsui.table_filter import EvalFilterTemplate, MenuFilterTemplate, RuleFi
 from tvtk.pyface.scene_editor import SceneEditor
 from mayavi.tools.mlab_scene_model import MlabSceneModel
 from mayavi.core.ui.mayavi_scene import MayaviScene
+
 
 ############################################################
 #
@@ -40,6 +42,7 @@ class TraitObjectProperty(HasTraits):
 class TraitDataProperty(HasTraits):
     dprop_name = Str
     dprop_range = Str
+    dprop_domain = Str
 
 class TraitClass(HasTraits):
     class_name = Str
@@ -67,6 +70,7 @@ class Visualization(HasTraits):
     #################################################
 
     # resource table_editor
+    selected_resource = Instance(TraitResource)
     resources_table_editor = TableEditor(
         columns = [ObjectColumn(name = 'resource_name', width = 1)],
         deletable = False,
@@ -74,10 +78,11 @@ class Visualization(HasTraits):
         sort_model  = True,
         auto_size   = False,
         orientation = 'vertical',
+        selected = 'selected_resource',
         row_factory = TraitResource)
 
     # Resources list
-    resources_list = List(TraitResource)
+    resources_list = List(TraitResource, selection_mode = "rows")
     resources_list_widget = Item('resources_list', show_label = False, editor = resources_table_editor, padding = 10),
 
     # Raise/Lower Button
@@ -116,7 +121,9 @@ class Visualization(HasTraits):
 
     # dataproperty table_editor
     dataproperty_table_editor = TableEditor(
-        columns = [ObjectColumn(name = 'dp_name', width = 1, label = "DataProperty"), ObjectColumn(name = 'dp_range', width = 1, label = "Range")],
+        columns = [ObjectColumn(name = 'dp_name', width = 1, label = "DataProperty"), 
+                   ObjectColumn(name = 'dp_domain', width = 1, label = "Domain"), 
+                   ObjectColumn(name = 'dp_range', width = 1, label = "Range")],
         deletable = False,
         editable = False,
         sort_model  = True,
@@ -136,7 +143,9 @@ class Visualization(HasTraits):
 
     # objectproperty table_editor
     objectproperty_table_editor = TableEditor(
-        columns = [ObjectColumn(name = 'op_name', width = 1, label = "Objectproperty"), ObjectColumn(name = 'op_domain', width = 1, label = "Domain"), ObjectColumn(name = 'op_range', width = 1, label = "Range")],
+        columns = [ObjectColumn(name = 'op_name', width = 1, label = "Objectproperty"), 
+                   ObjectColumn(name = 'op_domain', width = 1, label = "Domain"), 
+                   ObjectColumn(name = 'op_range', width = 1, label = "Range")],
         deletable = False,
         editable = False,
         sort_model  = True,
@@ -189,6 +198,9 @@ class Visualization(HasTraits):
                                      refresh_w), 
                               Item('scene', editor=SceneEditor(scene_class=MayaviScene), height=640, width=800, show_label=False))), lastlog_widget)
    
+    def stampa(self):
+        print "ASDFAF"
+
     # constructor
     def __init__(self, kp):
 
@@ -224,12 +236,17 @@ class Visualization(HasTraits):
         
         # get data properties
         dps = self.kp.get_data_properties()
-        # self.dataproperties_list.append(TraitDataProperty(dprop_name = dp, dprop_range = "foo"))
+        for dp in dps:
+            self.dataproperties_list.append(TraitDataProperty(dp_name = str(dp[0]), dp_domain = str(dp[1]), dp_range = str(dp[2])))
 
         # get object properties
         ops = self.kp.get_object_properties()    
+        for op in ops:
+            self.objectproperties_list.append(TraitObjectProperty(op_name = str(op[0]), op_domain = str(op[1]), op_range = str(op[2])))
 
-        # TODO: get instances
+        # get instances
+        for res in self.kp.get_instances():
+            self.resources_list.append(TraitResource(resource_name = str(res[0])))
 
         # TODO: get classes
 
@@ -255,7 +272,7 @@ class Visualization(HasTraits):
         self.calculate_placement()
         self.draw_plane0()
 
-     
+
     def _query_button_fired(self):
 
         """This method is executed when the query button is pressed"""    
@@ -269,6 +286,11 @@ class Visualization(HasTraits):
         uri_list = []
         if len(self.query_string) > 0:
              uri_list = self.kp.custom_query(self.query_string)
+
+        self.redraw(uri_list)
+
+
+    def redraw(self, uri_list):
 
         # raise nodes
         for resource in self.res_list.list.keys():
@@ -322,14 +344,22 @@ class Visualization(HasTraits):
     def _classes_button_fired(self):
         
         # debug print
-        logging.debug("CLASSES RAISE/LOWER button pressed")
+        logging.debug("CLASS RAISE/LOWER button pressed")
         self.lastlog = "CLASSES RAISE/LOWER button pressed"
+        print self.classes_list
 
 
-    def _resources_rl_fired(self):
+    def _resources_button_fired(self):
         
+        # getting selected resource
+        r = self.selected_resource.resource_name
+
         # debug print
-        logging.debug("RESOURCES RAISE/LOWER button pressed")
+        logging.debug("Raising resource %s" % r)
+        self.lastlog = "Raising resource %s" % r
+        
+        # raise
+        self.redraw([r])
 
 
     def _properties_rl_fired(self):
@@ -482,9 +512,7 @@ class Visualization(HasTraits):
                 item, itemlabel = self.drawer.draw_object_property(op)       
                 op.gitem = item
                 op.gitem_label = itemlabel
-
-            self.resources_list.append(TraitResource(resource_name = resource))
-
+            
         
     def sib_artist(self, plane0, plane1):
 
