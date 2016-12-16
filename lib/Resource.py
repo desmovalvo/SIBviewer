@@ -7,12 +7,13 @@ from smart_m3.m3_kp_api import *
 class Resource:
 
     # initializer
-    def __init__(self, resource, ns_list=None):
+    def __init__(self, resource, isClass, ns_list=None):
 
         """Initializes the Resource class"""
         
         # store the resource name
         self.name = str(resource)        
+        self.isClass = isClass
 
         # split in prefix and qname
         try:

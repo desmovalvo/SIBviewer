@@ -22,6 +22,7 @@ from traitsui.table_filter import EvalFilterTemplate, MenuFilterTemplate, RuleFi
 from tvtk.pyface.scene_editor import SceneEditor
 from mayavi.tools.mlab_scene_model import MlabSceneModel
 from mayavi.core.ui.mayavi_scene import MayaviScene
+from mayavi.mlab import outline
 
 
 ############################################################
@@ -47,12 +48,11 @@ class TraitDataProperty(HasTraits):
 class TraitClass(HasTraits):
     class_name = Str
 
-
 # UI
 class Visualization(HasTraits):
 
     # UI definition    
-    scene      = Instance(MlabSceneModel, ())
+    scene = Instance(MlabSceneModel, ())
 
     #################################################
     #
@@ -184,6 +184,18 @@ class Visualization(HasTraits):
     query_button = Button(label="SPARQL Query") 
     query_button_widget = Item('query_button', show_label=False)
 
+
+    #################################################
+    #
+    # Widget for exporting png
+    #
+    #################################################
+
+    # export widgets
+    export_button = Button(label="Export as PNG image") 
+    export_button_widget = Item('export_button', show_label=False)
+
+
     #################################################
     #
     # Widget for the stats
@@ -210,6 +222,7 @@ class Visualization(HasTraits):
                                      objectproperties_list_widget, objectproperties_button_widget, # op fields
                                      query_entry_widget, query_button_widget, # query fields
                                      stats_entry_widget,
+                                     export_button_widget,
                                      refresh_w), 
                               Item('scene', editor=SceneEditor(scene_class=MayaviScene), height=640, width=800, show_label=False))), lastlog_widget)
    
@@ -260,7 +273,10 @@ class Visualization(HasTraits):
         for res in self.kp.get_instances():
             self.resources_list.append(TraitResource(resource_name = str(res[0])))
 
-        # TODO: get classes
+        # get classes
+        cs = self.kp.get_classes()
+        for c in cs:
+            self.classes_list.append(TraitClass(class_name = c))
 
         # get stats
         self.stats_string = self.kp.get_stats()
@@ -271,11 +287,6 @@ class Visualization(HasTraits):
         #
         ###################################################
 
-        # fill the list of classes
-        classes = self.kp.get_classes()
-        for c in classes:
-            self.classes_list.append(TraitClass(class_name = c))
-
         # initialize data structures
         self.res_list = ResourceList()
 
@@ -283,6 +294,37 @@ class Visualization(HasTraits):
         p0, p1 = self.data_classifier()
         self.calculate_placement()
         self.draw_plane0()
+
+
+    @on_trait_change('scene.activated')
+    def scene_ready(self):
+
+        # get the figure and bind the picker
+        self.figure = self.scene.mayavi_scene
+        self.figure.on_mouse_pick(self.picker_callback)
+
+
+    def picker_callback(self, picker):
+            
+        # find the resource related to the clicked object
+        # ..if any
+        for resource in self.res_list.list.keys():
+            r = self.res_list.list[resource]      
+            if picker.actor in r.gitem.actor.actors:
+                logging.debug("Received click on %s" % r.name)
+
+
+    def _export_button_fired(self):
+        
+        """This method is used to export the scene to a PNG image"""
+        
+        # debug print
+        logging.debug("Exporting the current scene to a PNG image")
+        self.lastlog_string = "Exporting the current scene to a PNG image"
+
+        # export
+        self.scene.save_png("/tmp/output.png")
+
 
 
     def _query_button_fired(self):
@@ -299,10 +341,15 @@ class Visualization(HasTraits):
         if len(self.query_string) > 0:
              uri_list = self.kp.custom_query(self.query_string)
 
-        self.redraw(uri_list)
+        self.calculate_placement_ng()
+
+        # self.redraw(uri_list)
 
 
     def redraw(self, uri_list):
+
+        # temporarily disable rendering for faster visualization
+        self.scene.disable_render = True
 
         # raise nodes
         for resource in self.res_list.list.keys():
@@ -351,6 +398,10 @@ class Visualization(HasTraits):
                 item, itemlabel = self.drawer.draw_object_property(op)       
                 op.gitem = item
                 op.gitem_label = itemlabel
+
+
+        # enable rendering
+        self.scene.disable_render = False
         
 
     def _classes_button_fired(self):
@@ -436,6 +487,46 @@ class Visualization(HasTraits):
         self.sib_artist(p0, p1)
 
 
+    def data_classifier_ng(self):
+
+        # re-init res_list
+        self.res_list = ResourceList()
+        
+        # retrieve data
+        results = self.kp.get_everything()
+
+        # data analyzer
+        for triple in results:
+    
+            sub, pred, ob = triple
+            
+            # analyze the subject
+            sub_res = self.res_list.find_by_name(str(sub))
+            if not sub_res:
+                sub_res = Resource(sub)
+                self.res_list.add_resource(sub_res)
+
+            # analyze the object
+            if isinstance(ob, URI):
+                ob_res = self.res_list.find_by_name(str(ob))
+                if not ob_res:
+                    ob_res = Resource(ob)
+                    self.res_list.add_resource(ob_res)
+                    
+            # analyze the predicate (looking at the object)
+            if isinstance(ob, URI):
+    
+                # new object property found
+                op = ObjectProperty(pred, sub_res, ob_res)
+                sub_res.add_object_property(op)
+    
+            else:
+    
+                # new data property found
+                dp = DataProperty(pred, sub_res, str(ob))
+                sub_res.add_data_property(dp)        
+
+
     def data_classifier(self, sparql_query=None):
 
         # re-init res_list
@@ -448,6 +539,10 @@ class Visualization(HasTraits):
         # retrieve data
         results = self.kp.get_everything()
 
+        # retrieve classes
+        cs = self.kp.get_classes()
+        print cs
+
         # execute the sparql query
         uri_list = []
         if sparql_query:
@@ -457,11 +552,17 @@ class Visualization(HasTraits):
         for triple in results:
     
             sub, pred, ob = triple
+            print triple
             
             # analyze the subject
             sub_res = self.res_list.find_by_name(str(sub))
             if not sub_res:
-                sub_res = Resource(sub)
+                
+                if str(sub) in cs:                                        
+                    sub_res = Resource(sub, True)
+                else:
+                    sub_res = Resource(sub, False)
+
                 self.res_list.add_resource(sub_res)
                 
                 # determine the plane for the subject
@@ -474,7 +575,12 @@ class Visualization(HasTraits):
             if isinstance(ob, URI):
                 ob_res = self.res_list.find_by_name(str(ob))
                 if not ob_res:
-                    ob_res = Resource(ob)
+
+                    if str(ob) in cs:                    
+                        ob_res = Resource(ob, True)
+                    else:
+                        ob_res = Resource(ob, False)
+
                     self.res_list.add_resource(ob_res)
 
                     # determine the plane for the object
@@ -500,6 +606,83 @@ class Visualization(HasTraits):
         return plane0, plane1
 
                 
+    def calculate_placement_ng(self, uriplanes = None):
+
+        """This method is used to calculate the best placement for
+        nodes. uriplanes is a list of lists.  The first list specifies
+        the items to be placed on plane 1 (the default is plane 0),
+        the second on plane 2, and so on. If None everything is placed
+        on plane 0"""
+
+        # calculate the elements for each plane
+        if uriplanes:
+
+            # determine the number of planes
+            num_planes = len(uriplanes)
+            
+            # create a list for every plane
+            planes = []
+            for p in range(num_planes):
+                planes.append([])
+            
+            # fill the previously created lists
+            for resource in self.res_list.list.keys():
+
+                # find in which plane must be placed the resource
+                plane_found = False
+                r = self.res_list.list[resource]      
+                plane_counter = 0
+                for uriplane in uriplanes:
+                    plane_counter += 1
+                    if r.name in uriplane:                        
+                        print "PLANE FOUND!"
+                        planes[plane_counter].append(r)
+                        plane_found = True
+                        break
+                if not plane_found:
+                    planes[0].append(r)
+                    
+        print "PLANES ARE:"
+        counter = 0
+        for plane in planes:
+            print "* plane %s:" % counter
+            print plane
+            print
+            counter += 1
+
+
+        # # resource coordinates generator
+        # num_points = len(self.res_list.list)
+        
+        # # divide 360 by the number of points to get the base angle
+        # if num_points > 0:
+        #     multiplier = 20
+        #     angle = 360 / num_points
+        #     iteration = 0 
+        #     for resource in self.res_list.list.keys():
+        
+        #         r = self.res_list.list[resource]        
+        #         x = multiplier * math.cos(math.radians(iteration * angle))
+        #         y = multiplier * math.sin(math.radians(iteration * angle))
+        #         self.res_list.list[resource].set_coordinates(x,y,0)
+        
+        #         # calculate coordinates for datatype properties
+        #         num_prop = len(r.data_properties)
+        #         try:
+        #             dangle = 360 / num_prop
+        #             diteration = 0
+        #             for dp in r.data_properties:
+                        
+        #                 dmultiplier = 7
+        #                 dp.x = dmultiplier * math.cos(math.radians(diteration * dangle)) + r.get_coordinates()[0]
+        #                 dp.y = dmultiplier * math.sin(math.radians(diteration * dangle)) + r.get_coordinates()[1]
+        #                 dp.z = r.get_coordinates()[2]                                                
+        #                 diteration += 1
+        #         except:
+        #             pass                
+        #         iteration += 1   
+
+
     def calculate_placement(self):
 
         """This method is used to calculate the best
@@ -510,7 +693,7 @@ class Visualization(HasTraits):
         
         # divide 360 by the number of points to get the base angle
         if num_points > 0:
-            multiplier = 20
+            multiplier = 30
             angle = 360 / num_points
             iteration = 0 
             for resource in self.res_list.list.keys():
@@ -532,12 +715,16 @@ class Visualization(HasTraits):
                         dp.y = dmultiplier * math.sin(math.radians(diteration * dangle)) + r.get_coordinates()[1]
                         dp.z = r.get_coordinates()[2]                                                
                         diteration += 1
+
                 except:
                     pass                
                 iteration += 1   
         
 
     def draw_plane0(self):
+
+        # disable rendering
+        self.scene.disable_render = True
 
         # draw plane
         self.drawer.draw_plane(0)
@@ -567,6 +754,9 @@ class Visualization(HasTraits):
                 item, itemlabel = self.drawer.draw_object_property(op)       
                 op.gitem = item
                 op.gitem_label = itemlabel
+
+        # enable rendering
+        self.scene.disable_render = False        
             
         
     def sib_artist(self, plane0, plane1):
