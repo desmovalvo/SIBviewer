@@ -15,8 +15,8 @@ import pdb
 import math
 import numpy
 import logging
-from traits.api import HasTraits, Range, Str, Instance, on_trait_change, Enum, Button, List
-from traitsui.api import View, Item, Group, VGroup, HGroup, ListEditor, ListStrEditor, TableEditor, TextEditor
+from traits.api import HasTraits, Range, Str, Instance, on_trait_change, Enum, Button, List, Int
+from traitsui.api import View, Item, Group, VGroup, HGroup, ListEditor, ListStrEditor, TableEditor, TextEditor, Tabbed
 from traitsui.table_column import ObjectColumn, ExpressionColumn
 from traitsui.table_filter import EvalFilterTemplate, MenuFilterTemplate, RuleFilterTemplate, EvalTableFilter
 from tvtk.pyface.scene_editor import SceneEditor
@@ -86,8 +86,19 @@ class Visualization(HasTraits):
     resources_list_widget = Item('resources_list', show_label = False, editor = resources_table_editor, padding = 10),
 
     # Raise/Lower Button
-    resources_button = Button(label="Raise/Lower Resource")      
+    resources_button = Button(label="Raise/Lower resource to level:")      
     resources_button_widget = Item('resources_button', show_label=False)
+
+    # Raise/Lower level selector
+    resources_level_int = Int
+    resources_level_int_widget = Item('resources_level_int', show_label=False)
+
+    # Raise/Lower group
+    resources_raiselower_hgroup = HGroup(resources_button_widget, resources_level_int_widget)
+
+    # Group for all the data properties widget
+    rpg = VGroup(resources_list_widget, resources_raiselower_hgroup, label="Resources:", show_border=True)
+
 
     #################################################
     #
@@ -112,8 +123,18 @@ class Visualization(HasTraits):
     classes_list_widget = Item('classes_list', show_label = False, editor = classes_table_editor, padding = 10),
 
     # classes button
-    classes_button = Button(label="Raise/Lower Class")
+    classes_button = Button(label="Raise/Lower class to level:")
     classes_button_widget = Item('classes_button', show_label=False)
+
+    # Raise/Lower level selector
+    classes_level_int = Int
+    classes_level_int_widget = Item('classes_level_int', show_label=False)
+
+    # Raise/Lower group
+    classes_raiselower_hgroup = HGroup(classes_button_widget, classes_level_int_widget)
+
+    # Group for all the data properties widget
+    cpg = VGroup(classes_list_widget, classes_raiselower_hgroup, label="Classes:", show_border=True)
 
     #################################################
     #
@@ -140,10 +161,19 @@ class Visualization(HasTraits):
     dataproperties_list_widget = Item('dataproperties_list', show_label = False, editor = dataproperty_table_editor, padding = 10),
 
     # Raise/Lower Button
-    dataproperties_button = Button(label="Raise/Lower Datatype Property")      
+    dataproperties_button = Button(label="Raise/Lower Datatype Property to level:")      
     dataproperties_button_widget = Item('dataproperties_button', show_label=False)
 
+    # Raise/Lower level selector
+    dataproperties_level_int = Int
+    dataproperties_level_int_widget = Item('dataproperties_level_int', show_label=False)
 
+    # Raise/Lower group
+    dataproperties_raiselower_hgroup = HGroup(dataproperties_button_widget, dataproperties_level_int_widget)
+
+    # Group for all the data properties widget
+    dpg = VGroup(dataproperties_list_widget, dataproperties_raiselower_hgroup, label="Data Properties:", show_border=True)
+    
     #################################################
     #
     # Widget for handling Objectproperties
@@ -169,8 +199,18 @@ class Visualization(HasTraits):
     objectproperties_list_widget = Item('objectproperties_list', show_label = False, editor = objectproperty_table_editor, padding = 10),
 
     # Raise/Lower Button
-    objectproperties_button = Button(label="Raise/Lower Object Property")      
+    objectproperties_button = Button(label="Raise/Lower Object Property to level:")      
     objectproperties_button_widget = Item('objectproperties_button', show_label=False)
+
+    # Raise/Lower level selector
+    objectproperties_level_int = Int
+    objectproperties_level_int_widget = Item('objectproperties_level_int', show_label=False)
+
+    # Raise/Lower group
+    objectproperties_raiselower_hgroup = HGroup(objectproperties_button_widget, objectproperties_level_int_widget)
+
+    # Group for all the object properties widgets
+    opg = VGroup(objectproperties_list_widget, objectproperties_raiselower_hgroup, label="Object Properties:", show_border=True)
 
     #################################################
     #
@@ -181,9 +221,20 @@ class Visualization(HasTraits):
     # query widgets
     query_string = Str
     query_entry_widget = Item('query_string', show_label=False)
+
+    # query button
     query_button = Button(label="SPARQL Query") 
     query_button_widget = Item('query_button', show_label=False)
 
+    # Raise/Lower level selector
+    query_level_int = Int
+    query_level_int_widget = Item('query_level_int', show_label=False)
+
+    # Raise/Lower group
+    query_raiselower_hgroup = HGroup(query_button_widget, query_level_int_widget)
+
+    # group for all the query widgets
+    qpg = VGroup(query_entry_widget, query_raiselower_hgroup, label="SPARQL Query", show_border=True)
 
     #################################################
     #
@@ -207,6 +258,16 @@ class Visualization(HasTraits):
 
     #################################################
     #
+    # Widget for resetting the planes
+    #
+    #################################################
+
+    # refresh widgets
+    reset = Button(label="Reset placement")
+    reset_w = Item('reset', show_label=False)
+
+    #################################################
+    #
     # Widget for refreshing the view
     #
     #################################################
@@ -216,15 +277,14 @@ class Visualization(HasTraits):
     refresh_w = Item('refresh', show_label=False)
    
     # widgets
-    view = View(VGroup(HGroup(VGroup(resources_list_widget, resources_button_widget, # resources fields
-                                     classes_list_widget, classes_button_widget, # classes fields
-                                     dataproperties_list_widget, dataproperties_button_widget, # dp fields
-                                     objectproperties_list_widget, objectproperties_button_widget, # op fields
-                                     query_entry_widget, query_button_widget, # query fields
+    view = View(VGroup(HGroup(VGroup(Tabbed(rpg, cpg, dpg, opg, qpg),
                                      stats_entry_widget,
                                      export_button_widget,
+                                     reset_w,
                                      refresh_w), 
-                              Item('scene', editor=SceneEditor(scene_class=MayaviScene), height=640, width=800, show_label=False))), lastlog_widget)
+                              Item('scene', editor=SceneEditor(scene_class=MayaviScene), height=640, width=800, show_label=False))), 
+                lastlog_widget,
+                scrollable=True)
    
     # constructor
     def __init__(self, kp):
@@ -293,7 +353,7 @@ class Visualization(HasTraits):
         # get and analyze knowledge
         p0, p1 = self.data_classifier()
         self.calculate_placement()
-        self.draw_plane0()
+        self.draw()
 
 
     @on_trait_change('scene.activated')
@@ -309,18 +369,29 @@ class Visualization(HasTraits):
         # find the resource related to the clicked object
         # ..if any
 
+        # NOTE: this code is absolutely raw. Needs to be
+        # optimized and many tricks can be used to speed
+        # up the execution even with large datasets.
+
         for resource in self.res_list.list.keys():
+
+            # cycle over the resources
             r = self.res_list.list[resource]      
             if picker.actor in r.gitem.actor.actors:
                 logging.debug("Received click on %s" % r.name)
                 self.lastlog_string = r.name
                 break
+
             else:                
+
+                # cycle over the data properties
                 for dp in r.data_properties:
                     if picker.actor in dp.gitem_predicate.actor.actors:
                         logging.debug("Received click on %s" % dp.dproperty)
                         self.lastlog_string = dp.dproperty
                         break
+                        
+                # cycle over the object properties
                 for op in r.object_properties:
                     if picker.actor in op.gitem.actor.actors:
                         logging.debug("Received click on %s" % op.oproperty)
@@ -341,6 +412,18 @@ class Visualization(HasTraits):
         self.scene.save_png("/tmp/output.png")
 
 
+    def _reset_fired(self):
+        
+        """This method is used to reset the view to plane 0"""
+        
+        # debug print
+        logging.debug("Resetting the view to plane 0")
+        self.lastlog_string = "Resetting the view to plane 0"
+
+        # reset
+        self.redraw(None, 0)
+
+
 
     def _query_button_fired(self):
 
@@ -350,18 +433,25 @@ class Visualization(HasTraits):
         logging.debug("QUERY button pressed")
         self.lastlog_string = "QUERY button pressed"
 
+        # read the required value
+        l = self.query_level_int    
+     
         # retrieve URI related to the query
         # execute the sparql query
         uri_list = []
         if len(self.query_string) > 0:
              uri_list = self.kp.custom_query(self.query_string)
 
-        self.calculate_placement_ng()
+        # move objects!
+        self.redraw(uri_list, l)
 
-        # self.redraw(uri_list)
 
+    def redraw(self, uri_list, plane):
 
-    def redraw(self, uri_list):
+        """This function moves all the resources of uri_list
+        to the plane indicated by the plane variable. If uri_list 
+        is None and plane is 0, then everything is reset to the 
+        initial position."""
 
         # temporarily disable rendering for faster visualization
         self.scene.disable_render = True
@@ -369,52 +459,47 @@ class Visualization(HasTraits):
         # raise nodes
         for resource in self.res_list.list.keys():
             r = self.res_list.list[resource]      
-            if r.name in uri_list:
-
+            if (not(uri_list) and plane == 0) or (r.name in uri_list):
+                
                 # remove the old object
                 r.gitem.remove() 
                 r.gitem_label.remove()
-
+                
                 # design the new object on a different plane
-                r.z = 100
+                r.z = 100 * int(plane)
                 gitem, gitem_label = self.drawer.draw_resource(r)
                 r.gitem = gitem
                 r.gitem_label = gitem_label
-
+                
                 # also raise the dp
                 for dp in r.data_properties:
-                    
+                     
                     # delete the old property
                     dp.gitem_object.remove()
                     dp.gitem_objectlabel.remove()
                     dp.gitem_predicate.remove()
-                    dp.gitem_predicatelabel.remove()
-                                        
-                    # update the coordinate
-                    dp.z = 100
                     
+                    # update the coordinate
+                    dp.z = 100 * int(plane)
+                     
                     # draw the property                 
                     a1, a2, a3 = self.drawer.draw_data_property(dp)
                     dp.gitem_predicate = a1
                     dp.gitem_object = a2
                     dp.gitem_objectlabel = a3
-                    # dp.gitem_predicatelabel = a4
-                
+                 
         # also redraw the object properties
         for resource in self.res_list.list.keys():
             r = self.res_list.list[resource]      
             for op in r.object_properties:
-                
+                 
                 # delete the old object property
                 op.gitem.remove()
-                op.gitem_label.remove()
-                    
+                     
                 # draw the edge
-                item, itemlabel = self.drawer.draw_object_property(op)       
+                item = self.drawer.draw_object_property(op)       
                 op.gitem = item
-                op.gitem_label = itemlabel
-
-
+    
         # enable rendering
         self.scene.disable_render = False
         
@@ -424,6 +509,9 @@ class Visualization(HasTraits):
         # getting selected class
         c = self.selected_class.class_name
     
+        # read the required value
+        l = self.classes_level_int    
+
         # debug print
         logging.debug("Raising instances of class %s" % c)
         self.lastlog_string = "Raising instances of class %s" % c    
@@ -435,7 +523,7 @@ class Visualization(HasTraits):
             uri_list.append(str(res[0]))
 
         # raising instances
-        self.redraw(uri_list)        
+        self.redraw(uri_list, l)        
 
 
     def _resources_button_fired(self):
@@ -443,18 +531,24 @@ class Visualization(HasTraits):
         # getting selected resource
         r = self.selected_resource.resource_name
 
+        # read the required value
+        l = self.resources_level_int    
+
         # debug print
         logging.debug("Raising resource %s" % r)
         self.lastlog_string = "Raising resource %s" % r
         
         # raise
-        self.redraw([r])
+        self.redraw([r], l)
 
 
     def _dataproperties_button_fired(self):
         
         # getting selected datatype property
         dp = self.selected_dp.dp_name
+
+        # read the required value
+        l = self.dataproperties_level_int    
     
         # debug print
         logging.debug("Raising instances of class %s" % dp)
@@ -467,7 +561,7 @@ class Visualization(HasTraits):
             uri_list.append(str(res[0]))
 
         # raising instances
-        self.redraw(uri_list)
+        self.redraw(uri_list, l)
 
 
     def _objectproperties_button_fired(self):
@@ -475,6 +569,9 @@ class Visualization(HasTraits):
         # getting selected object property
         op = self.selected_op.op_name
     
+        # read the required value
+        l = self.objectproperties_level_int    
+
         # debug print
         logging.debug("Raising instances with object property %s" % op)
         self.lastlog_string = "Raising instances with object property %s" % op
@@ -486,7 +583,7 @@ class Visualization(HasTraits):
             uri_list.append(str(res[0]))
 
         # raising instances
-        self.redraw(uri_list)
+        self.redraw(uri_list, l)
                 
 
     def _refresh_fired(self):
@@ -666,38 +763,6 @@ class Visualization(HasTraits):
             counter += 1
 
 
-        # # resource coordinates generator
-        # num_points = len(self.res_list.list)
-        
-        # # divide 360 by the number of points to get the base angle
-        # if num_points > 0:
-        #     multiplier = 20
-        #     angle = 360 / num_points
-        #     iteration = 0 
-        #     for resource in self.res_list.list.keys():
-        
-        #         r = self.res_list.list[resource]        
-        #         x = multiplier * math.cos(math.radians(iteration * angle))
-        #         y = multiplier * math.sin(math.radians(iteration * angle))
-        #         self.res_list.list[resource].set_coordinates(x,y,0)
-        
-        #         # calculate coordinates for datatype properties
-        #         num_prop = len(r.data_properties)
-        #         try:
-        #             dangle = 360 / num_prop
-        #             diteration = 0
-        #             for dp in r.data_properties:
-                        
-        #                 dmultiplier = 7
-        #                 dp.x = dmultiplier * math.cos(math.radians(diteration * dangle)) + r.get_coordinates()[0]
-        #                 dp.y = dmultiplier * math.sin(math.radians(diteration * dangle)) + r.get_coordinates()[1]
-        #                 dp.z = r.get_coordinates()[2]                                                
-        #                 diteration += 1
-        #         except:
-        #             pass                
-        #         iteration += 1   
-
-
     def calculate_placement(self):
 
         """This method is used to calculate the best
@@ -736,7 +801,11 @@ class Visualization(HasTraits):
                 iteration += 1   
         
 
-    def draw_plane0(self):
+    def draw(self):
+
+        """This method is called at init time or at refresh time.
+        Everything is placed on plane 0. Then the selected items
+        can be moved to other planes with proper functions"""
 
         # disable rendering
         self.scene.disable_render = True
