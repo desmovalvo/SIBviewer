@@ -70,12 +70,12 @@ class Drawer:
         et = time.time()
         logging.debug("Edge drawn in %s ms" % (round(et-st, 3) * 1000)) 
 
-        st = time.time()        
-        t = self.scene.mlab.text(pred_x, pred_y, op.oproperty.split("#")[1], z=pred_z, width=char_width * len(str(op.oproperty.split("#")[1])))
-        et = time.time()
-        logging.debug("Text drawn in %s ms" % (round(et-st, 3) * 1000)) 
+        # st = time.time()        
+        # t = self.scene.mlab.text(pred_x, pred_y, op.oproperty.split("#")[1], z=pred_z, width=char_width * len(str(op.oproperty.split("#")[1])))
+        # et = time.time()
+        # logging.debug("Text drawn in %s ms" % (round(et-st, 3) * 1000)) 
 
-        return d, t
+        return d
 
 
     # data property drawer
@@ -100,18 +100,18 @@ class Drawer:
 
         # draw the edge
         st = time.time()
-        p = self.scene.mlab.plot3d(u, v, w, color=green, tube_radius=.03)
+        p = self.scene.mlab.plot3d(u, v, w, color=green, tube_radius=.1)
         et = time.time()
         logging.debug("Sphere drawn in %s ms" % (round(et-st, 3) * 1000))
 
-        # write the name of the predicate
-        st = time.time()
-        pl = self.scene.mlab.text(pred_x, pred_y, str(dp.dproperty).split("#")[1], z=dp.z, width=char_width * len(str(dp.dproperty).split("#")[1]))
-        et = time.time()
-        logging.debug("Text drawn in %s ms" % (round(et-st, 3) * 1000)) 
+        # # write the name of the predicate
+        # st = time.time()
+        # pl = self.scene.mlab.text(pred_x, pred_y, str(dp.dproperty).split("#")[1], z=dp.z, width=char_width * len(str(dp.dproperty).split("#")[1]))
+        # et = time.time()
+        # logging.debug("Text drawn in %s ms" % (round(et-st, 3) * 1000)) 
 
 
-        return p, pl, o, ol
+        return p, o, ol
 
         
     # plane drawer

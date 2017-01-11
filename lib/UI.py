@@ -308,10 +308,25 @@ class Visualization(HasTraits):
             
         # find the resource related to the clicked object
         # ..if any
+
         for resource in self.res_list.list.keys():
             r = self.res_list.list[resource]      
             if picker.actor in r.gitem.actor.actors:
                 logging.debug("Received click on %s" % r.name)
+                self.lastlog_string = r.name
+                break
+            else:                
+                for dp in r.data_properties:
+                    if picker.actor in dp.gitem_predicate.actor.actors:
+                        logging.debug("Received click on %s" % dp.dproperty)
+                        self.lastlog_string = dp.dproperty
+                        break
+                for op in r.object_properties:
+                    if picker.actor in op.gitem.actor.actors:
+                        logging.debug("Received click on %s" % op.oproperty)
+                        self.lastlog_string = op.oproperty
+                        break
+
 
 
     def _export_button_fired(self):
@@ -379,11 +394,11 @@ class Visualization(HasTraits):
                     dp.z = 100
                     
                     # draw the property                 
-                    a1, a2, a3, a4 = self.drawer.draw_data_property(dp)
-                    dp.gitem_object = a1
-                    dp.gitem_objectlabel = a2
-                    dp.gitem_predicate = a3
-                    dp.gitem_predicatelabel = a4
+                    a1, a2, a3 = self.drawer.draw_data_property(dp)
+                    dp.gitem_predicate = a1
+                    dp.gitem_object = a2
+                    dp.gitem_objectlabel = a3
+                    # dp.gitem_predicatelabel = a4
                 
         # also redraw the object properties
         for resource in self.res_list.list.keys():
@@ -740,20 +755,20 @@ class Visualization(HasTraits):
             for dp in r.data_properties:
                 
                 # draw the property                
-                a1, a2, a3, a4 = self.drawer.draw_data_property(dp)
-                dp.gitem_object = a1
-                dp.gitem_objectlabel = a2
-                dp.gitem_predicate = a3
-                dp.gitem_predicatelabel = a4
+                a1, a2, a3 = self.drawer.draw_data_property(dp)
+                dp.gitem_object = a2
+                dp.gitem_objectlabel = a3
+                dp.gitem_predicate = a1
+                # dp.gitem_predicatelabel = a4
 
         # draw object properties
         for resource in self.res_list.list.keys():                
             for op in self.res_list.list[resource].object_properties:
 
                 # draw the edge
-                item, itemlabel = self.drawer.draw_object_property(op)       
+                item = self.drawer.draw_object_property(op)       
                 op.gitem = item
-                op.gitem_label = itemlabel
+                # op.gitem_label = itemlabel
 
         # enable rendering
         self.scene.disable_render = False        
