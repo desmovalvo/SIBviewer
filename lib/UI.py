@@ -22,7 +22,6 @@ from traitsui.table_filter import EvalFilterTemplate, MenuFilterTemplate, RuleFi
 from tvtk.pyface.scene_editor import SceneEditor
 from mayavi.tools.mlab_scene_model import MlabSceneModel
 from mayavi.core.ui.mayavi_scene import MayaviScene
-from mayavi.mlab import outline
 
 
 ############################################################
@@ -409,7 +408,7 @@ class Visualization(HasTraits):
         self.lastlog_string = "Exporting the current scene to a PNG image"
 
         # export
-        self.scene.save_png("/tmp/output.png")
+        self.scene.save("/tmp/output.png")
 
 
     def _reset_fired(self):
