@@ -241,15 +241,17 @@ class Visualization(HasTraits):
     #################################################
 
     # query button
-    plane_button = Button(label="Merge with plane 0") 
+    plane_button = Button(label="Merge plane A on plane B") 
     plane_button_widget = Item('plane_button', show_label=False)
 
     # Raise/Lower level selector
-    plane_level_int = Int
-    plane_level_int_widget = Item('plane_level_int', show_label=False)
+    plane_level_int1 = Int
+    plane_level_int1_widget = Item('plane_level_int1', show_label=False)
+    plane_level_int2 = Int
+    plane_level_int2_widget = Item('plane_level_int2', show_label=False)
 
     # Raise/Lower group
-    plane_merge_hgroup = HGroup(plane_button_widget, plane_level_int_widget)
+    plane_merge_hgroup = HGroup(plane_level_int1_widget, plane_button_widget, plane_level_int2_widget)
 
     # group for all the query widgets
     ppg = VGroup(plane_merge_hgroup, label="Planes", show_border=True)
@@ -428,13 +430,14 @@ class Visualization(HasTraits):
         self.lastlog_string = "Merge plane function called"
 
         # get the plane to merge
-        l = self.plane_level_int    
+        l1 = self.plane_level_int1    
+        l2 = self.plane_level_int2   
 
         # get items on that plane
-        uri_list = self.res_list.find_by_layer(l)
+        uri_list = self.res_list.find_by_layer(l1)
         
         # move items on plane 0
-        self.redraw(uri_list, 0)
+        self.redraw(uri_list, l2)
 
 
     def _export_button_fired(self):
