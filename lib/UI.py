@@ -348,6 +348,7 @@ class Visualization(HasTraits):
 
         # initialize data structures
         self.res_list = ResourceList()
+        self.planes = []
 
         # get and analyze knowledge
         p0, p1 = self.data_classifier()
@@ -398,7 +399,6 @@ class Visualization(HasTraits):
                         break
 
 
-
     def _export_button_fired(self):
         
         """This method is used to export the scene to a PNG image"""
@@ -407,8 +407,10 @@ class Visualization(HasTraits):
         logging.debug("Exporting the current scene to a PNG image")
         self.lastlog_string = "Exporting the current scene to a PNG image"
 
-        # export
-        self.scene.save("/tmp/output.png")
+        # # export
+        # self.scene.save("/tmp/output.png")
+
+        self.res_list.find_by_layer(0, 100)
 
 
     def _reset_fired(self):
@@ -421,7 +423,6 @@ class Visualization(HasTraits):
 
         # reset
         self.redraw(None, 0)
-
 
 
     def _query_button_fired(self):
@@ -498,6 +499,14 @@ class Visualization(HasTraits):
                 # draw the edge
                 item = self.drawer.draw_object_property(op)       
                 op.gitem = item
+
+        # remove existing planes and draw a plane where needed
+        needed_planes = self.res_list.get_layers_list().keys()
+        for plane in self.planes:
+            plane.remove()
+        self.planes = []
+        for needed_plane in needed_planes:
+            self.planes.append(self.drawer.draw_plane(int(needed_plane)))
     
         # enable rendering
         self.scene.disable_render = False
@@ -809,8 +818,12 @@ class Visualization(HasTraits):
         # disable rendering
         self.scene.disable_render = True
 
+        # create a dict for plane0
+        plane0_dict = {}
+
         # draw plane
-        self.drawer.draw_plane(0)
+        plane0_dict["plane"] = self.drawer.draw_plane(0)
+        plane0_dict["widgets"] = []
 
         # draw resources
         for resource in self.res_list.list.keys():
@@ -827,7 +840,6 @@ class Visualization(HasTraits):
                 dp.gitem_object = a2
                 dp.gitem_objectlabel = a3
                 dp.gitem_predicate = a1
-                # dp.gitem_predicatelabel = a4
 
         # draw object properties
         for resource in self.res_list.list.keys():                
@@ -840,6 +852,9 @@ class Visualization(HasTraits):
 
         # enable rendering
         self.scene.disable_render = False        
+
+        # store the first plane
+        self.planes.append(plane0_dict["plane"])
             
         
     def sib_artist(self, plane0, plane1):

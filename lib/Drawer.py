@@ -124,3 +124,6 @@ class Drawer:
         s = numpy.zeros((100, 100))
         i = self.scene.mlab.imshow(s, colormap="gray", opacity=0.7)
         i.actor.position = [0,0,plane_number*100-4]
+
+        # return the plane
+        return i
