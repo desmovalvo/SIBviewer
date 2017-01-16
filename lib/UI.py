@@ -200,12 +200,16 @@ class Visualization(HasTraits):
     objectproperties_button = Button(label="Raise/Lower Object Property to level:")      
     objectproperties_button_widget = Item('objectproperties_button', show_label=False)
 
+    # Hide Button
+    objectproperties_hide_button = Button(label="Hide/Show Object Property")      
+    objectproperties_hide_button_widget = Item('objectproperties_hide_button', show_label=False)
+
     # Raise/Lower level selector
     objectproperties_level_int = Int
     objectproperties_level_int_widget = Item('objectproperties_level_int', show_label=False)
 
     # Raise/Lower group
-    objectproperties_raiselower_hgroup = HGroup(objectproperties_button_widget, objectproperties_level_int_widget)
+    objectproperties_raiselower_hgroup = HGroup(objectproperties_hide_button_widget, objectproperties_button_widget, objectproperties_level_int_widget)
 
     # Group for all the object properties widgets
     opg = VGroup(objectproperties_list_widget, objectproperties_raiselower_hgroup, label="Object Properties:", show_border=True)
@@ -633,7 +637,31 @@ class Visualization(HasTraits):
 
         # raising instances
         self.redraw(uri_list, l)
-                
+
+
+    def _objectproperties_hide_button_fired(self):
+        
+        # getting selected object property
+        opname = self.selected_op.op_name
+    
+        # debug print
+        logging.debug("Hide/show object property %s" % opname)
+        self.lastlog_string = "Hide/show object property %s" % opname               
+
+        # draw object properties
+        for resource in self.res_list.list.keys():                
+            for op in self.res_list.list[resource].object_properties:
+                if op.oproperty == opname:
+                    
+                    # if item is None -> draw, else remove
+                    if op.gitem:
+                        op.gitem.remove()
+                        op.gitem = None
+                    else:
+                        # draw the edge
+                        item = self.drawer.draw_object_property(op)       
+                        op.gitem = item
+
 
     def _refresh_fired(self):
         
