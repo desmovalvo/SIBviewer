@@ -31,6 +31,22 @@ class ResourceList:
 
         
     # find by layer
+    def find_by_layer(self, layer, layerHeight = 100):
+
+        """Method to retrieve all the resources on a plane"""
+        
+        uri_list = []
+
+        for r in self.list.keys():
+            if (self.list[r].z / layerHeight) == layer:
+                uri_list.append(r)
+
+        print uri_list
+        return uri_list
+
+
+
+    # get layers list
     def get_layers_list(self, layerHeight = 100):
 
         """Method to retrieve all the resources on a plane"""

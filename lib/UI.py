@@ -98,7 +98,6 @@ class Visualization(HasTraits):
     # Group for all the data properties widget
     rpg = VGroup(resources_list_widget, resources_raiselower_hgroup, label="Resources:", show_border=True)
 
-
     #################################################
     #
     # Widget for handling Classes
@@ -237,6 +236,27 @@ class Visualization(HasTraits):
 
     #################################################
     #
+    # Widget for handling planes
+    #
+    #################################################
+
+    # query button
+    plane_button = Button(label="Merge with plane 0") 
+    plane_button_widget = Item('plane_button', show_label=False)
+
+    # Raise/Lower level selector
+    plane_level_int = Int
+    plane_level_int_widget = Item('plane_level_int', show_label=False)
+
+    # Raise/Lower group
+    plane_merge_hgroup = HGroup(plane_button_widget, plane_level_int_widget)
+
+    # group for all the query widgets
+    ppg = VGroup(plane_merge_hgroup, label="Planes", show_border=True)
+
+
+    #################################################
+    #
     # Widget for exporting png
     #
     #################################################
@@ -276,7 +296,7 @@ class Visualization(HasTraits):
     refresh_w = Item('refresh', show_label=False)
    
     # widgets
-    view = View(VGroup(HGroup(VGroup(Tabbed(rpg, cpg, dpg, opg, qpg),
+    view = View(VGroup(HGroup(VGroup(Tabbed(rpg, cpg, dpg, opg, qpg, ppg),
                                      stats_entry_widget,
                                      export_button_widget,
                                      reset_w,
@@ -397,6 +417,24 @@ class Visualization(HasTraits):
                         logging.debug("Received click on %s" % op.oproperty)
                         self.lastlog_string = op.oproperty
                         break
+
+
+    def _plane_button_fired(self):
+
+        """This method is used to merge a plane with the plane 0"""
+
+        # debug print
+        logging.debug("Merge plane function called")
+        self.lastlog_string = "Merge plane function called"
+
+        # get the plane to merge
+        l = self.plane_level_int    
+
+        # get items on that plane
+        uri_list = self.res_list.find_by_layer(l)
+        
+        # move items on plane 0
+        self.redraw(uri_list, 0)
 
 
     def _export_button_fired(self):
