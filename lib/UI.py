@@ -15,7 +15,7 @@ import pdb
 import math
 import numpy
 import logging
-from traits.api import HasTraits, Range, Str, Instance, on_trait_change, Enum, Button, List, Int
+from traits.api import HasTraits, Range, Str, Instance, on_trait_change, Enum, Button, List, Int, Bool
 from traitsui.api import View, Item, Group, VGroup, HGroup, ListEditor, ListStrEditor, TableEditor, TextEditor, Tabbed
 from traitsui.table_column import ObjectColumn, ExpressionColumn
 from traitsui.table_filter import EvalFilterTemplate, MenuFilterTemplate, RuleFilterTemplate, EvalTableFilter
@@ -219,7 +219,14 @@ class Visualization(HasTraits):
     # Widget for handling custom queries
     #
     #################################################
-
+    
+    # query prefixes widgets
+    #query_rdf_prefix = BooleanEditor(mapping={"yes":True, "no":False})
+    query_rdf_prefix = Bool(True, label="RDF Prefix")
+    query_owl_prefix = Bool(True, label="OWL Prefix")
+    query_rdfs_prefix = Bool(True, label="RDFS Prefix")
+    query_ns_prefix = Bool(True, label="NS Prefix")
+    
     # query widgets
     query_string = Str
     query_entry_widget = Item('query_string', show_label=False)
@@ -232,8 +239,11 @@ class Visualization(HasTraits):
     query_level_int = Int
     query_level_int_widget = Item('query_level_int', show_label=False)
 
+    # Prefixes Group
+    query_prefixes_group = VGroup('query_rdf_prefix', 'query_rdfs_prefix', 'query_owl_prefix', 'query_ns_prefix')
+
     # Raise/Lower group
-    query_raiselower_hgroup = HGroup(query_button_widget, query_level_int_widget)
+    query_raiselower_hgroup = HGroup(query_prefixes_group, query_button_widget, query_level_int_widget)
 
     # group for all the query widgets
     qpg = VGroup(query_entry_widget, query_raiselower_hgroup, label="SPARQL Query", show_border=True)
@@ -478,6 +488,17 @@ class Visualization(HasTraits):
         logging.debug("QUERY button pressed")
         self.lastlog_string = "QUERY button pressed"
 
+        # get required prefixes
+        prefixes = ""
+        if self.query_rdf_prefix:
+            prefixes += RDF_PREFIX
+        if self.query_rdfs_prefix:
+            prefixes += RDFS_PREFIX
+        if self.query_owl_prefix:
+            prefixes += OWL_PREFIX
+        if self.query_ns_prefix:
+            prefixes += NS_PREFIX
+
         # read the required value
         l = self.query_level_int    
      
@@ -485,7 +506,7 @@ class Visualization(HasTraits):
         # execute the sparql query
         uri_list = []
         if len(self.query_string) > 0:
-             uri_list = self.kp.custom_query(self.query_string)
+             uri_list = self.kp.custom_query(prefixes + self.query_string)
 
         # move objects!
         self.redraw(uri_list, l)

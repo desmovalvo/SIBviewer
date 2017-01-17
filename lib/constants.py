@@ -1,6 +1,14 @@
 # namespaces
 rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+rdfs = "http://www.w3.org/2000/01/rdf-schema#"
+owl = "http://www.w3.org/2002/07/owl#"
 ns = "http://ns#"
+
+# SPARQL headers
+RDF_PREFIX = "PREFIX rdf:<%s>" % rdf
+RDFS_PREFIX = "PREFIX rdfs:<%s>" % rdfs
+OWL_PREFIX = "PREFIX owl:<%s>" % owl
+NS_PREFIX = "PREFIX ns:<%s>" % ns
 
 # colors
 red = (1,0,0)
