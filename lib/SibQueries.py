@@ -93,3 +93,13 @@ SELECT ?instance
 WHERE {
   ?instance <%s> ?object
 }"""
+
+# The following query is for reification
+q_reification = """PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+SELECT ?o ?p ?s
+WHERE {
+  ?t rdf:type rdf:Statement .
+  ?t rdf:subject ?s .
+  ?t rdf:predicate ?p .
+  ?t rdf:object ?o 
+}"""

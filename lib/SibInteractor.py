@@ -128,6 +128,38 @@ class SibInteractor:
         return uri_list
 
 
+    def custom_multilevel_query(self, q):
+
+        """Method to perform a custom query and return a multiple list of URIs"""
+
+        uri_list = []
+        self.kp.load_query_sparql(q)
+
+        # iterate over the bindings
+        for binding in self.kp.result_sparql_query:
+
+            # iterate over the fields of each binding
+            for variable in binding:
+
+                # get index
+                ind = binding.index(variable)
+
+                # see if the uri_list already contains
+                # a list for that level
+                try:
+
+                    if not(str(variable[2]) in uri_list[ind]):
+                        uri_list[ind].append(str(variable[2]))
+
+                except IndexError:
+
+                    uri_list.append([])
+                    if not(str(variable[2]) in uri_list[ind]):
+                        uri_list[ind].append(str(variable[2]))
+
+        return uri_list
+
+
     def get_data_properties(self):
 
         """Method used to retrieve alle the data

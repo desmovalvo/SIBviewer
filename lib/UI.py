@@ -227,6 +227,10 @@ class Visualization(HasTraits):
     query_rdfs_prefix = Bool(True, label="RDFS Prefix")
     query_ns_prefix = Bool(True, label="NS Prefix")
     
+    # multilevel
+    query_multilevel = Bool(False, label="Multilevel Query?")
+    query_reification = Bool(False, label="Reification Query?")
+
     # query widgets
     query_string = Str
     query_entry_widget = Item('query_string', show_label=False)
@@ -240,7 +244,7 @@ class Visualization(HasTraits):
     query_level_int_widget = Item('query_level_int', show_label=False)
 
     # Prefixes Group
-    query_prefixes_group = VGroup('query_rdf_prefix', 'query_rdfs_prefix', 'query_owl_prefix', 'query_ns_prefix')
+    query_prefixes_group = VGroup('query_rdf_prefix', 'query_rdfs_prefix', 'query_owl_prefix', 'query_ns_prefix', 'query_multilevel', 'query_reification')
 
     # Raise/Lower group
     query_raiselower_hgroup = HGroup(query_prefixes_group, query_button_widget, query_level_int_widget)
@@ -499,17 +503,46 @@ class Visualization(HasTraits):
         if self.query_ns_prefix:
             prefixes += NS_PREFIX
 
-        # read the required value
-        l = self.query_level_int    
-     
-        # retrieve URI related to the query
-        # execute the sparql query
-        uri_list = []
-        if len(self.query_string) > 0:
-             uri_list = self.kp.custom_query(prefixes + self.query_string)
+        # multilevel
+        multilevel = self.query_multilevel
 
-        # move objects!
-        self.redraw(uri_list, l)
+        if not multilevel:
+
+            # read the required value
+            l = self.query_level_int    
+     
+            # retrieve URI related to the query
+            # execute the sparql query
+            uri_list = []
+            if self.query_reification:
+                uri_list = self.kp.custom_query(q_reification)
+            else:
+                if len(self.query_string) > 0:
+                    uri_list = self.kp.custom_query(prefixes + self.query_string)
+
+            # move objects!
+            self.redraw(uri_list, l)
+
+        else:
+
+            # retrieve URI related to the query
+            # execute the sparql query
+            uri_list = []
+            if self.query_reification:
+                print "here"
+                uri_list = self.kp.custom_multilevel_query(q_reification)
+                print "here"
+                print uri_list
+            else:
+                if len(self.query_string) > 0:
+                    uri_list = self.kp.custom_multilevel_query(prefixes + self.query_string)
+                
+            # move objects!
+            level_counter = 0
+            for level in uri_list:
+
+                level_counter += 1
+                self.redraw(level, level_counter)                
 
 
     def redraw(self, uri_list, plane):
