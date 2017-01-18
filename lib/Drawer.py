@@ -34,7 +34,10 @@ class Drawer:
         if resource.isClass:
             r = self.scene.mlab.points3d(resource.x, resource.y, resource.z, color=orange, colormap="copper", scale_factor=5, resolution=8)
         else:
-            r = self.scene.mlab.points3d(resource.x, resource.y, resource.z, color=purple, colormap="copper", scale_factor=5, resolution=8)
+            if resource.isStatement:
+                r = self.scene.mlab.points3d(resource.x, resource.y, resource.z, color=red, colormap="copper", scale_factor=5, resolution=8)
+            else:
+                r = self.scene.mlab.points3d(resource.x, resource.y, resource.z, color=purple, colormap="copper", scale_factor=5, resolution=8)
         et = time.time()
         logging.debug("Sphere drawn in %s ms" % (round(et-st, 3) * 1000))
 
@@ -66,7 +69,7 @@ class Drawer:
 
         # draw the edge and its name
         st = time.time()        
-        d = self.scene.mlab.plot3d(u, v, w, color=op.color, tube_radius=.05)
+        d = self.scene.mlab.plot3d(u, v, w, color=op.color, tube_radius=.25)
         et = time.time()
         logging.debug("Edge drawn in %s ms" % (round(et-st, 3) * 1000)) 
 
@@ -100,7 +103,7 @@ class Drawer:
 
         # draw the edge
         st = time.time()
-        p = self.scene.mlab.plot3d(u, v, w, color=green, tube_radius=.1)
+        p = self.scene.mlab.plot3d(u, v, w, color=green, tube_radius=.25)
         et = time.time()
         logging.debug("Sphere drawn in %s ms" % (round(et-st, 3) * 1000))
 

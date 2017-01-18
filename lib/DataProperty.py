@@ -41,3 +41,13 @@ class DataProperty:
         """Returns the coordinates for the object node"""
 
         return self.x, self.y, self.z
+
+
+    # set coordinates
+    def set_coordinates(self, x, y, z):
+
+        """Returns the coordinates for the object node"""
+
+        self.x = x
+        self.y = y
+        self.z = z

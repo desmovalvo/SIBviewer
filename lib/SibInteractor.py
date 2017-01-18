@@ -38,6 +38,20 @@ class SibInteractor:
         return classes
 
 
+    def get_statements(self):
+
+        """Method that returns the list of the rdf/owl/implicit classes"""
+
+        # retrieve data
+        statements = []
+        self.kp.load_query_sparql(q_statements)
+        for binding in self.kp.result_sparql_query:
+            statements.append(binding[0][2])
+
+        # return data
+        return statements
+
+
     def get_instances(self):
         
         """Method to retrieve all the instances"""
@@ -168,6 +182,7 @@ class SibInteractor:
         qres = self.local_storage.query(q_dproperties)
         return qres
         
+
     def get_object_properties(self):
 
         """Method used to retrieve alle the data
@@ -189,3 +204,15 @@ class SibInteractor:
         print out_string
 
         return out_string
+
+    
+    def get_statement_els(self, statement):
+
+        """Retrieves fields of a statement"""
+
+        res = self.local_storage.query(q_statement_fields % (statement, statement, statement, statement))
+        for r in res:
+            s,p,o = r
+            break
+        return s,p,o
+        

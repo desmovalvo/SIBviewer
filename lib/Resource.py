@@ -29,6 +29,7 @@ class Resource:
         # initialize properties
         self.data_properties = []
         self.object_properties = []
+        self.isStatement = False
 
         # initialize the graphic element
         self.gitem = None

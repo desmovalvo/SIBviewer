@@ -103,3 +103,20 @@ WHERE {
   ?t rdf:predicate ?p .
   ?t rdf:object ?o 
 }"""
+
+# The following query retrieves all the statements
+q_statements = """PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+SELECT ?st
+WHERE {
+  ?st rdf:type rdf:Statement 
+}"""
+
+# The following query is for reification
+q_statement_fields = """PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+SELECT ?s ?p ?o
+WHERE {
+  <%s> rdf:type rdf:Statement .
+  <%s> rdf:subject ?s .
+  <%s> rdf:predicate ?p .
+  <%s> rdf:object ?o 
+}"""

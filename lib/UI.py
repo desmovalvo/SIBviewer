@@ -391,7 +391,7 @@ class Visualization(HasTraits):
         self.planes = []
 
         # get and analyze knowledge
-        p0, p1 = self.data_classifier()
+        self.data_classifier()
         self.calculate_placement()
         self.draw()
 
@@ -420,6 +420,15 @@ class Visualization(HasTraits):
             if picker.actor in r.gitem.actor.actors:
                 logging.debug("Received click on %s" % r.name)
                 self.lastlog_string = r.name
+                
+                if r.isStatement:
+                    try:
+                        print r.name
+                        s,p,o = self.kp.get_statement_els(r.name)
+                        self.lastlog_string = "Selected statement (%s,%s,%s)" % (s,p,o)
+                    except:
+                        pdb.set_trace()
+
                 break
 
             else:                
@@ -545,6 +554,58 @@ class Visualization(HasTraits):
                 self.redraw(level, level_counter)                
 
 
+    def calculate_res_coords(self, num_items, z):
+
+        """This function calculate the best placement for
+        num_items items"""
+
+        # initialize coords
+        coords = []
+        
+        # divide 360 by the number of points to get the base angle
+        if num_items > 0:
+            multiplier = 30
+            angle = 360 / num_items
+            iteration = 0 
+            for item in xrange(num_items):        
+                x = multiplier * math.cos(math.radians(iteration * angle))
+                y = multiplier * math.sin(math.radians(iteration * angle))                
+                coords.append([x,y,z])
+                iteration += 1
+                
+        # return
+        return coords
+
+    
+    def calculate_dp_coords(self, r):
+
+        """This method is used to calculate the coordinates
+        for all the data properties of a resource r"""
+
+        # initialize coords
+        coords = []
+
+        # get the center
+        x, y, z = r.get_coordinates()
+
+        # calculate coordinates for datatype properties
+        num_prop = len(r.data_properties)
+        if num_prop > 0:
+            dangle = 360 / num_prop
+            diteration = 0
+            for dp in xrange(num_prop):
+                        
+                dmultiplier = 7
+                dpx = dmultiplier * math.cos(math.radians(diteration * dangle)) + x
+                dpy = dmultiplier * math.sin(math.radians(diteration * dangle)) + y
+                dpz = z
+                coords.append([dpx, dpy, dpz])
+                diteration += 1
+            
+        # return 
+        return coords
+
+
     def redraw(self, uri_list, plane):
 
         """This function moves all the resources of uri_list
@@ -555,22 +616,33 @@ class Visualization(HasTraits):
         # temporarily disable rendering for faster visualization
         self.scene.disable_render = True
 
-        # raise nodes
+        # calculate new coordinates for object on the given plane
+        if uri_list:
+            coords = self.calculate_res_coords(len(uri_list), plane*100)
+        else:
+            coords = self.calculate_res_coords(len(self.res_list.list), plane*100)
+
+        # iterate over the uris
         for resource in self.res_list.list.keys():
+
             r = self.res_list.list[resource]      
             if (not(uri_list) and plane == 0) or (r.name in uri_list):
                 
                 # remove the old object
                 r.gitem.remove() 
                 r.gitem_label.remove()
+
+                # get the new coordinates
+                x,y,z = coords.pop()
+                r.set_coordinates(x,y,z)
                 
-                # design the new object on a different plane
-                r.z = 100 * int(plane)
+                # design the new object on a different plane                
                 gitem, gitem_label = self.drawer.draw_resource(r)
                 r.gitem = gitem
                 r.gitem_label = gitem_label
                 
                 # also raise the dp
+                dpcoords = self.calculate_dp_coords(r)
                 for dp in r.data_properties:
                      
                     # delete the old property
@@ -579,7 +651,8 @@ class Visualization(HasTraits):
                     dp.gitem_predicate.remove()
                     
                     # update the coordinate
-                    dp.z = 100 * int(plane)
+                    xx, yy, zz = dpcoords.pop()
+                    dp.set_coordinates(xx, yy, zz)
                      
                     # draw the property                 
                     a1, a2, a3 = self.drawer.draw_data_property(dp)
@@ -775,17 +848,15 @@ class Visualization(HasTraits):
         # re-init res_list
         self.res_list = ResourceList()
         
-        # planes
-        plane0 = []
-        plane1 = []
-        
         # retrieve data
         results = self.kp.get_everything()
 
         # retrieve classes
         cs = self.kp.get_classes()
-        print cs
 
+        # retrieve statements
+        sts = self.kp.get_statements()
+        
         # execute the sparql query
         uri_list = []
         if sparql_query:
@@ -802,18 +873,13 @@ class Visualization(HasTraits):
             if not sub_res:
                 
                 if str(sub) in cs:                                        
-                    sub_res = Resource(sub, True)
+                    sub_res = Resource(sub, True)                        
                 else:
                     sub_res = Resource(sub, False)
-
+                    if str(sub) in sts:
+                        sub_res.isStatement = True                    
                 self.res_list.add_resource(sub_res)
                 
-                # determine the plane for the subject
-                if str(sub) in uri_list:
-                    plane1.append(sub_res)
-                else:
-                    plane0.append(sub_res)
-    
             # analyze the object
             if isinstance(ob, URI):
                 ob_res = self.res_list.find_by_name(str(ob))
@@ -826,12 +892,6 @@ class Visualization(HasTraits):
 
                     self.res_list.add_resource(ob_res)
 
-                    # determine the plane for the object
-                    if str(ob) in uri_list:
-                        plane1.append(ob_res)
-                    else:
-                        plane0.append(ob_res)
-                    
             # analyze the predicate (looking at the object)
             if isinstance(ob, URI):
     
@@ -844,9 +904,6 @@ class Visualization(HasTraits):
                 # new data property found
                 dp = DataProperty(pred, sub_res, str(ob))
                 sub_res.add_data_property(dp)        
-
-        # return
-        return plane0, plane1
 
                 
     def calculate_placement_ng(self, uriplanes = None):
