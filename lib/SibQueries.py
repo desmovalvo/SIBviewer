@@ -45,16 +45,20 @@ WHERE {
 q_dproperties = """PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX owl:<http://www.w3.org/2002/07/owl#> 
 PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#> 
-SELECT DISTINCT ?property ?domain ?range
+SELECT DISTINCT ?property ?domain ?range ?comment ?label
 WHERE {
   { ?property rdf:type owl:DatatypeProperty .
     OPTIONAL { ?property rdfs:range ?range } .
-    OPTIONAL { ?property rdfs:domain ?domain }
-   }
+    OPTIONAL { ?property rdfs:domain ?domain } .
+    OPTIONAL { ?property rdfs:label ?label} . 
+    OPTIONAL { ?property rdfs:comment ?comment}
+  }
   UNION 
   { ?property rdf:type rdfs:Datatype .
     OPTIONAL { ?property rdfs:range ?range } .
-    OPTIONAL { ?property rdfs:domain ?domain }
+    OPTIONAL { ?property rdfs:domain ?domain } .
+    OPTIONAL { ?property rdfs:label ?label} . 
+    OPTIONAL { ?property rdfs:comment ?comment}
   }
 }"""
 

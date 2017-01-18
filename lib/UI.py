@@ -38,11 +38,15 @@ class TraitObjectProperty(HasTraits):
     obprop_name = Str
     obprop_range = Str
     obprop_domain = Str
+    oprop_comment = Str
+    oprop_label = Str
 
 class TraitDataProperty(HasTraits):
     dprop_name = Str
     dprop_range = Str
     dprop_domain = Str
+    dprop_comment = Str
+    dprop_label = Str
 
 class TraitClass(HasTraits):
     class_name = Str
@@ -145,7 +149,9 @@ class Visualization(HasTraits):
     dataproperty_table_editor = TableEditor(
         columns = [ObjectColumn(name = 'dp_name', width = 1, label = "DataProperty"), 
                    ObjectColumn(name = 'dp_domain', width = 1, label = "Domain"), 
-                   ObjectColumn(name = 'dp_range', width = 1, label = "Range")],
+                   ObjectColumn(name = 'dp_range', width = 1, label = "Range"),
+                   ObjectColumn(name = 'dp_label', width = 1, label = "Label"), 
+                   ObjectColumn(name = 'dp_comment', width = 1, label = "Comment")],
         deletable = False,
         editable = False,
         sort_model  = True,
@@ -183,7 +189,9 @@ class Visualization(HasTraits):
     objectproperty_table_editor = TableEditor(
         columns = [ObjectColumn(name = 'op_name', width = 1, label = "Objectproperty"), 
                    ObjectColumn(name = 'op_domain', width = 1, label = "Domain"), 
-                   ObjectColumn(name = 'op_range', width = 1, label = "Range")],
+                   ObjectColumn(name = 'op_range', width = 1, label = "Range"),
+                   ObjectColumn(name = 'op_label', width = 1, label = "Label"), 
+                   ObjectColumn(name = 'op_comment', width = 1, label = "Comment")],
         deletable = False,
         editable = False,
         sort_model  = True,
