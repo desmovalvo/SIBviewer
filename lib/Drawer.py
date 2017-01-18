@@ -41,13 +41,8 @@ class Drawer:
         et = time.time()
         logging.debug("Sphere drawn in %s ms" % (round(et-st, 3) * 1000))
 
-        # # draw the text
-        # st = time.time()        
-        # t = self.scene.mlab.text(resource.x, resource.y, resource.name, z=resource.z, width=char_width * len(resource.name))
-        # et = time.time()
-        # logging.debug("Text drawn in %s ms" % (round(et-st, 3) * 1000)) 
-
-        return r #, t
+        # return
+        return r
         
 
     # object property drawer
@@ -73,11 +68,7 @@ class Drawer:
         et = time.time()
         logging.debug("Edge drawn in %s ms" % (round(et-st, 3) * 1000)) 
 
-        # st = time.time()        
-        # t = self.scene.mlab.text(pred_x, pred_y, op.oproperty.split("#")[1], z=pred_z, width=char_width * len(str(op.oproperty.split("#")[1])))
-        # et = time.time()
-        # logging.debug("Text drawn in %s ms" % (round(et-st, 3) * 1000)) 
-
+        # return
         return d
 
 
@@ -88,7 +79,6 @@ class Drawer:
 
         # draw the data property
         o = self.scene.mlab.points3d(dp.x, dp.y, dp.z, color=green, colormap="copper", scale_factor=2, resolution=8)
-        # ol = self.scene.mlab.text(dp.x, dp.y, dp.get_value(), z=dp.z, width=char_width * len(str(dp.get_value())))
 
         # get the subject of the property
         r = dp.resource
@@ -106,14 +96,8 @@ class Drawer:
         p = self.scene.mlab.plot3d(u, v, w, color=green, tube_radius=.25)
         et = time.time()
         logging.debug("Sphere drawn in %s ms" % (round(et-st, 3) * 1000))
-
-        # # write the name of the predicate
-        # st = time.time()
-        # pl = self.scene.mlab.text(pred_x, pred_y, str(dp.dproperty).split("#")[1], z=dp.z, width=char_width * len(str(dp.dproperty).split("#")[1]))
-        # et = time.time()
-        # logging.debug("Text drawn in %s ms" % (round(et-st, 3) * 1000)) 
-
-
+        
+        # return
         return p, o
 
         
@@ -132,6 +116,7 @@ class Drawer:
         return i
 
         
+    # draw text
     def draw_text(self, resource):
 
         """Used to put text on the resource

@@ -221,7 +221,6 @@ class Visualization(HasTraits):
     #################################################
     
     # query prefixes widgets
-    #query_rdf_prefix = BooleanEditor(mapping={"yes":True, "no":False})
     query_rdf_prefix = Bool(True, label="RDF Prefix")
     query_owl_prefix = Bool(True, label="OWL Prefix")
     query_rdfs_prefix = Bool(True, label="RDFS Prefix")
@@ -277,6 +276,20 @@ class Visualization(HasTraits):
 
     #################################################
     #
+    # Widget for stats
+    #
+    #################################################
+
+    # stats string
+    stats_string = Str
+    stats_string_widget = Item('stats_string', show_label=False, style="readonly")    
+
+    # group for all the query widgets
+    spg = VGroup(stats_string_widget, label="Info", show_border=True)
+
+
+    #################################################
+    #
     # Widget for exporting png
     #
     #################################################
@@ -285,15 +298,6 @@ class Visualization(HasTraits):
     export_button = Button(label="Export as PNG image") 
     export_button_widget = Item('export_button', show_label=False)
 
-
-    #################################################
-    #
-    # Widget for the stats
-    #
-    #################################################
-
-    stats_string = Str
-    stats_entry_widget = Item('stats_string', show_label=False, style="readonly")    
 
     #################################################
     #
@@ -316,8 +320,7 @@ class Visualization(HasTraits):
     refresh_w = Item('refresh', show_label=False)
    
     # widgets
-    view = View(VGroup(HGroup(VGroup(Tabbed(rpg, cpg, dpg, opg, qpg, ppg),
-                                     stats_entry_widget,
+    view = View(VGroup(HGroup(VGroup(Tabbed(rpg, cpg, dpg, opg, qpg, ppg, spg),
                                      export_button_widget,
                                      reset_w,
                                      refresh_w), 
@@ -377,9 +380,6 @@ class Visualization(HasTraits):
         for c in cs:
             self.classes_list.append(TraitClass(class_name = c))
 
-        # get stats
-        self.stats_string = self.kp.get_stats()
-
         ###################################################
         #
         # Draw
@@ -423,26 +423,23 @@ class Visualization(HasTraits):
                 self.lastlog_string = r.name
                 
                 if r.isStatement:
-                    try:
-                        print r.name
-                        s,p,o = self.kp.get_statement_els(r.name)
-                        self.lastlog_string = "Selected statement (%s,%s,%s)" % (s,p,o)
-                    except:
-                        pdb.set_trace()
-
+                    print r.name
+                    s,p,o = self.kp.get_statement_els(r.name)
+                    self.lastlog_string = "Selected statement (%s,%s,%s)" % (s,p,o)
+                    
                 else:
                     
                     # remove active labels
                     for label in self.active_labels:                    
-                        try:
-                            label.remove()
-                        except:
-                            pdb.set_trace()
+                        label.remove()
                     self.active_labels = []
 
                     # draw the new labels
                     for active_label in self.drawer.draw_text(r):
                         self.active_labels.append(active_label)
+
+                    # fill the side panel
+                    self.stats_string = r.get_info()
 
                 break
 
@@ -811,50 +808,11 @@ class Visualization(HasTraits):
         # debug
         logging.debug("REFRESH button pressed")
 
-        # clean and redraw
+        # clean
         self.scene.mlab.clf()
-        p0, p1 = self.data_classifier()
-        self.sib_artist(p0, p1)
 
-
-    def data_classifier_ng(self):
-
-        # re-init res_list
-        self.res_list = ResourceList()
-        
-        # retrieve data
-        results = self.kp.get_everything()
-
-        # data analyzer
-        for triple in results:
-    
-            sub, pred, ob = triple
-            
-            # analyze the subject
-            sub_res = self.res_list.find_by_name(str(sub))
-            if not sub_res:
-                sub_res = Resource(sub)
-                self.res_list.add_resource(sub_res)
-
-            # analyze the object
-            if isinstance(ob, URI):
-                ob_res = self.res_list.find_by_name(str(ob))
-                if not ob_res:
-                    ob_res = Resource(ob)
-                    self.res_list.add_resource(ob_res)
-                    
-            # analyze the predicate (looking at the object)
-            if isinstance(ob, URI):
-    
-                # new object property found
-                op = ObjectProperty(pred, sub_res, ob_res)
-                sub_res.add_object_property(op)
-    
-            else:
-    
-                # new data property found
-                dp = DataProperty(pred, sub_res, str(ob))
-                sub_res.add_data_property(dp)        
+        # TODO redraw
+        pass
 
 
     def data_classifier(self, sparql_query=None):
@@ -1049,72 +1007,3 @@ class Visualization(HasTraits):
         self.planes.append(plane0_dict["plane"])
             
         
-    def sib_artist(self, plane0, plane1):
-
-        # draw the planes
-        self.drawer.draw_plane(0)
-        if len(plane1) > 0:
-            self.drawer.draw_plane(1)                    
-        
-        ##################################################
-        #
-        # draw resources and data properties
-        #
-        ##################################################
-        
-        # resource coordinates generator
-        num_points = len(self.res_list.list)
-        
-        # divide 360 by the number of points to get the base angle
-        if num_points > 0:
-            multiplier = 20
-            angle = 360 / num_points
-            iteration = 0 
-            for resource in self.res_list.list.keys():
-        
-                r = self.res_list.list[resource]        
-                x = multiplier * math.cos(math.radians(iteration * angle))
-                y = multiplier * math.sin(math.radians(iteration * angle))
-    
-                if r in plane0:
-                    z = 0
-                else:
-                    z = 100
-                self.res_list.list[resource].set_coordinates(x,y,z)
-                
-                # draw the resource
-                self.drawer.draw_resource(r)
-        
-                # draw the data properties
-                num_prop = len(r.data_properties)
-                try:
-                    dangle = 360 / num_prop
-                    diteration = 0
-                    for dp in r.data_properties:
-                        
-                        dmultiplier = 7
-                        dp.x = dmultiplier * math.cos(math.radians(diteration * dangle)) + r.get_coordinates()[0]
-                        dp.y = dmultiplier * math.sin(math.radians(diteration * dangle)) + r.get_coordinates()[1]
-                        dp.z = r.get_coordinates()[2]
-                        
-                        # draw the property                
-                        self.drawer.draw_data_property(dp)
-                        
-                        diteration += 1
-                except:
-                    pass
-                
-                iteration += 1
-    
-    
-        ##################################################
-        #
-        # draw object properties
-        #
-        ##################################################
-    
-        for resource in self.res_list.list.keys():                
-            for op in self.res_list.list[resource].object_properties:
-
-                # draw the edge
-                self.drawer.draw_object_property(op)

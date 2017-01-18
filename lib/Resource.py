@@ -74,3 +74,57 @@ class Resource:
 
         self.object_properties.append(oproperty)
         
+
+    # info_dp
+    def get_info_dp(self):
+
+        """Returns a string containing the list
+        of the datatype properties"""
+
+        # init output string
+        out_string = ""
+
+        # cycle over the datatype properties
+        for dp in self.data_properties:
+            out_string += "%s -> %s" % (dp.dproperty, dp.value)
+        
+        # return 
+        return out_string
+
+
+    # info_op
+    def get_info_op(self):
+
+        """Returns a string containing the list
+        of the datatype properties"""
+
+        # init output string
+        out_string = ""
+
+        # cycle over the datatype properties
+        for op in self.object_properties:
+            out_string += "%s, %s, %s" % (op.s, op.oproperty, op.o)
+        
+        # return 
+        return out_string
+
+
+    # info
+    def get_info(self):
+
+        """This method is used to retrieve a string
+        that will be put in the left panel to describe
+        the resource"""
+
+        info = """Resource: %s
+
+Datatype properties: 
+%s
+
+Object properties: 
+%s
+
+""" % (self.name, self.get_info_dp(), self.get_info_op())
+
+        # return
+        return info
