@@ -41,13 +41,13 @@ class Drawer:
         et = time.time()
         logging.debug("Sphere drawn in %s ms" % (round(et-st, 3) * 1000))
 
-        # draw the text
-        st = time.time()        
-        t = self.scene.mlab.text(resource.x, resource.y, resource.name, z=resource.z, width=char_width * len(resource.name))
-        et = time.time()
-        logging.debug("Text drawn in %s ms" % (round(et-st, 3) * 1000)) 
+        # # draw the text
+        # st = time.time()        
+        # t = self.scene.mlab.text(resource.x, resource.y, resource.name, z=resource.z, width=char_width * len(resource.name))
+        # et = time.time()
+        # logging.debug("Text drawn in %s ms" % (round(et-st, 3) * 1000)) 
 
-        return r, t
+        return r #, t
         
 
     # object property drawer
@@ -88,7 +88,7 @@ class Drawer:
 
         # draw the data property
         o = self.scene.mlab.points3d(dp.x, dp.y, dp.z, color=green, colormap="copper", scale_factor=2, resolution=8)
-        ol = self.scene.mlab.text(dp.x, dp.y, dp.get_value(), z=dp.z, width=char_width * len(str(dp.get_value())))
+        # ol = self.scene.mlab.text(dp.x, dp.y, dp.get_value(), z=dp.z, width=char_width * len(str(dp.get_value())))
 
         # get the subject of the property
         r = dp.resource
@@ -114,7 +114,7 @@ class Drawer:
         # logging.debug("Text drawn in %s ms" % (round(et-st, 3) * 1000)) 
 
 
-        return p, o, ol
+        return p, o
 
         
     # plane drawer
@@ -130,3 +130,28 @@ class Drawer:
 
         # return the plane
         return i
+
+        
+    def draw_text(self, resource):
+
+        """Used to put text on the resource
+        and all of its data properties"""
+
+        # init objects
+        objects = []
+        
+        # draw label for the resource
+        st = time.time()        
+        t = self.scene.mlab.text(resource.x, resource.y, resource.name, z=resource.z, width=char_width * len(resource.name))
+        et = time.time()
+        logging.debug("Text drawn in %s ms" % (round(et-st, 3) * 1000)) 
+        objects.append(t)
+                
+        # draw label for all the data properties
+        for dp in resource.data_properties:
+            t = self.scene.mlab.text(dp.x, dp.y, dp.get_value(), z=dp.z, width=char_width * len(str(dp.get_value())))
+            objects.append(t)
+
+        # return the drawn objects
+        return objects
+        

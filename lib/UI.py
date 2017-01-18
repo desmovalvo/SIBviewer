@@ -389,6 +389,7 @@ class Visualization(HasTraits):
         # initialize data structures
         self.res_list = ResourceList()
         self.planes = []
+        self.active_labels = []
 
         # get and analyze knowledge
         self.data_classifier()
@@ -428,6 +429,20 @@ class Visualization(HasTraits):
                         self.lastlog_string = "Selected statement (%s,%s,%s)" % (s,p,o)
                     except:
                         pdb.set_trace()
+
+                else:
+                    
+                    # remove active labels
+                    for label in self.active_labels:                    
+                        try:
+                            label.remove()
+                        except:
+                            pdb.set_trace()
+                    self.active_labels = []
+
+                    # draw the new labels
+                    for active_label in self.drawer.draw_text(r):
+                        self.active_labels.append(active_label)
 
                 break
 
@@ -655,10 +670,9 @@ class Visualization(HasTraits):
                     dp.set_coordinates(xx, yy, zz)
                      
                     # draw the property                 
-                    a1, a2, a3 = self.drawer.draw_data_property(dp)
+                    a1, a2 = self.drawer.draw_data_property(dp)
                     dp.gitem_predicate = a1
                     dp.gitem_object = a2
-                    dp.gitem_objectlabel = a3
                  
         # also redraw the object properties
         for resource in self.res_list.list.keys():
@@ -1008,17 +1022,15 @@ class Visualization(HasTraits):
         # draw resources
         for resource in self.res_list.list.keys():
             r = self.res_list.list[resource]        
-            gitem, gitem_label = self.drawer.draw_resource(r)
-            r.gitem = gitem
-            r.gitem_label = gitem_label
+            gitem = self.drawer.draw_resource(r)
+            r.gitem = gitem            
 
             # draw data properties
             for dp in r.data_properties:
                 
                 # draw the property                
-                a1, a2, a3 = self.drawer.draw_data_property(dp)
+                a1, a2 = self.drawer.draw_data_property(dp)
                 dp.gitem_object = a2
-                dp.gitem_objectlabel = a3
                 dp.gitem_predicate = a1
 
         # draw object properties
