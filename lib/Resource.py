@@ -33,13 +33,16 @@ class Resource:
 
         # initialize the graphic element
         self.gitem = None
-        self.gitem_label = None
         
         # define coordinates
         self.x = None
         self.y = None
         self.z = None
 
+        # initialize label and comment
+        self.label = None
+        self.comment = None
+        
 
     # set coords
     def set_coordinates(self, x, y, z):

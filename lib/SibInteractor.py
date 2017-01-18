@@ -216,3 +216,24 @@ class SibInteractor:
             break
         return s,p,o
         
+
+    def get_all_comments(self):
+
+        """Retrieves all the comments"""
+        
+        comments = []
+        res = self.local_storage.query(q_comments)
+        for r in res:
+            comments.append([r[0], r[1]])
+        return comments
+        
+
+    def get_all_labels(self):
+
+        """Retrieves all the labels"""
+        
+        labels = []
+        res = self.local_storage.query(q_labels)
+        for r in res:
+            labels.append([r[0], r[1]])
+        return labels

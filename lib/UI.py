@@ -498,8 +498,6 @@ class Visualization(HasTraits):
         # # export
         # self.scene.save("/tmp/output.png")
 
-        self.res_list.find_by_layer(0, 100)
-
 
     def _reset_fired(self):
         
@@ -854,6 +852,7 @@ class Visualization(HasTraits):
             sub_res = self.res_list.find_by_name(str(sub))
             if not sub_res:
                 
+                # Create a new Resource
                 if str(sub) in cs:                                        
                     sub_res = Resource(sub, True)                        
                 else:
@@ -886,6 +885,19 @@ class Visualization(HasTraits):
                 # new data property found
                 dp = DataProperty(pred, sub_res, str(ob))
                 sub_res.add_data_property(dp)        
+
+        # look for comments and labels
+        comments = self.kp.get_all_comments()
+        for c in comments:
+            res = self.res_list.find_by_name(str(c[0]))
+            if res:
+                res.comment = c[1]        
+
+        labels = self.kp.get_all_labels()
+        for l in labels:
+            res = self.res_list.find_by_name(str(l[0]))
+            if res:
+                res.label = l[1]
 
                 
     def calculate_placement_ng(self, uriplanes = None):
@@ -1015,4 +1027,5 @@ class Visualization(HasTraits):
         # store the first plane
         self.planes.append(plane0_dict["plane"])
             
-        
+       
+    

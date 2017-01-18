@@ -128,3 +128,19 @@ WHERE {
   <%s> rdf:predicate ?p .
   <%s> rdf:object ?o 
 }"""
+
+# get all the comments
+q_comments = """PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#> 
+SELECT ?r ?c
+WHERE {
+  ?r rdfs:comment ?c
+}"""
+
+# get all the labels
+q_labels = """PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#> 
+SELECT ?r ?l
+WHERE {
+  ?r rdfs:label ?l
+}"""

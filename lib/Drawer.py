@@ -124,10 +124,17 @@ class Drawer:
 
         # init objects
         objects = []
+
+        # what to type?
+        mystring = ""
+        if resource.label:
+            mystring = resource.label
+        else:
+            mystring = resource.name
         
         # draw label for the resource
         st = time.time()        
-        t = self.scene.mlab.text(resource.x, resource.y, resource.name, z=resource.z, width=char_width * len(resource.name))
+        t = self.scene.mlab.text(resource.x, resource.y, mystring, z=resource.z, width=char_width * len(mystring))
         et = time.time()
         logging.debug("Text drawn in %s ms" % (round(et-st, 3) * 1000)) 
         objects.append(t)
