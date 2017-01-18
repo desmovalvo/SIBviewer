@@ -636,6 +636,11 @@ class Visualization(HasTraits):
         # temporarily disable rendering for faster visualization
         self.scene.disable_render = True
 
+        # delete all the text labels
+        for active_label in self.active_labels:
+            active_label.remove()
+        self.active_labels = []
+
         # calculate new coordinates for object on the given plane
         if uri_list:
             coords = self.calculate_res_coords(len(uri_list), plane*100)
@@ -650,16 +655,14 @@ class Visualization(HasTraits):
                 
                 # remove the old object
                 r.gitem.remove() 
-                r.gitem_label.remove()
 
                 # get the new coordinates
                 x,y,z = coords.pop()
                 r.set_coordinates(x,y,z)
                 
                 # design the new object on a different plane                
-                gitem, gitem_label = self.drawer.draw_resource(r)
+                gitem = self.drawer.draw_resource(r)
                 r.gitem = gitem
-                r.gitem_label = gitem_label
                 
                 # also raise the dp
                 dpcoords = self.calculate_dp_coords(r)
@@ -667,7 +670,6 @@ class Visualization(HasTraits):
                      
                     # delete the old property
                     dp.gitem_object.remove()
-                    dp.gitem_objectlabel.remove()
                     dp.gitem_predicate.remove()
                     
                     # update the coordinate
@@ -1006,7 +1008,6 @@ class Visualization(HasTraits):
                 # draw the edge
                 item = self.drawer.draw_object_property(op)       
                 op.gitem = item
-                # op.gitem_label = itemlabel
 
         # enable rendering
         self.scene.disable_render = False        

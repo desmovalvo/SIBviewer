@@ -71,12 +71,16 @@ SELECT DISTINCT ?property ?domain ?range
 WHERE {
   { ?property rdf:type owl:ObjectProperty .
     OPTIONAL { ?property rdfs:range ?range } .
-    OPTIONAL { ?property rdfs:domain ?domain }
+    OPTIONAL { ?property rdfs:domain ?domain } .
+    OPTIONAL { ?property rdfs:label ?label} . 
+    OPTIONAL { ?property rdfs:comment ?comment}
    }
   UNION 
   { ?property rdf:type rdfs:Datatype .
     OPTIONAL { ?property rdfs:range ?range } .
-    OPTIONAL { ?property rdfs:domain ?domain }
+    OPTIONAL { ?property rdfs:domain ?domain } .
+    OPTIONAL { ?property rdfs:label ?label} . 
+    OPTIONAL { ?property rdfs:comment ?comment}
   }
 }"""
 
