@@ -363,6 +363,8 @@ class Visualization(HasTraits):
         self.kp = kp
         if self.kp.owl_file:
             self.kp.load_owl()
+        elif self.kp.n3_file:
+            self.kp.load_n3()
         elif self.kp.blazehost:
             self.kp.get_everything_blaze()
         else:

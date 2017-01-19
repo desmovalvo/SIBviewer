@@ -15,7 +15,7 @@ class SibInteractor:
 
     """This class constitutes the KP"""
     
-    def __init__(self, host, port, owl_file, blazehost):
+    def __init__(self, host, port, owl_file, n3_file, blazehost):
 
         """Constructor for the SibInteractor"""
 
@@ -26,6 +26,7 @@ class SibInteractor:
         except:
             self.port = None
         self.owl_file = owl_file    
+        self.n3_file = n3_file
         self.local_storage = None
         self.blazehost = blazehost
 
@@ -38,6 +39,18 @@ class SibInteractor:
         self.local_storage = rdflib.Graph()
         try:
             self.local_storage.parse(self.owl_file, format='xml')
+        except Exception as e:
+            raise rdflib.OWLException("Parsing failed!")
+
+
+    def load_n3(self):
+
+        """Load an n3 file"""
+                
+        # parse the owl file
+        self.local_storage = rdflib.Graph()
+        try:
+            self.local_storage.parse(self.n3_file, format='n3')
         except Exception as e:
             raise rdflib.OWLException("Parsing failed!")
 

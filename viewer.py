@@ -41,7 +41,7 @@ if __name__ == "__main__":
     #
     ###############################################################
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "s:o:b:", ["sib=", "owl=", "blaze="])
+        opts, args = getopt.getopt(sys.argv[1:], "s:o:b:n:", ["sib=", "owl=", "blaze=","n3="])
     except getopt.GetoptError as err:
         sys.exit(2)
 
@@ -55,6 +55,8 @@ if __name__ == "__main__":
             sib_host, sib_port = a.split(":")
         elif o in ("-o", "--owl"):
             owl_file = a
+        elif o in ("-n", "--n3"):
+            n3_file = a
         elif o in ("-b", "--blaze"):
             blaze_host = a
         else:
@@ -66,7 +68,7 @@ if __name__ == "__main__":
     # instantiate the KP 
     #
     ###############################################################
-    kp = SibInteractor(sib_host, sib_port, owl_file, blaze_host)
+    kp = SibInteractor(sib_host, sib_port, owl_file, n3_file, blaze_host)
 
     
     ###############################################################
