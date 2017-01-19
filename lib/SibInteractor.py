@@ -15,7 +15,7 @@ class SibInteractor:
 
     """This class constitutes the KP"""
     
-    def __init__(self, host, port, owl_file, n3_file, blazehost):
+    def __init__(self, host, port, owl_file, n3_files, blazehost):
 
         """Constructor for the SibInteractor"""
 
@@ -26,33 +26,46 @@ class SibInteractor:
         except:
             self.port = None
         self.owl_file = owl_file    
-        self.n3_file = n3_file
+        self.n3_files = n3_files
         self.local_storage = None
         self.blazehost = blazehost
+
+        # initialize a local graph
+        self.local_storage = rdflib.Graph()
 
 
     def load_owl(self):
 
         """Load an OWL file"""
                 
-        # parse the owl file
-        self.local_storage = rdflib.Graph()
-        try:
-            self.local_storage.parse(self.owl_file, format='xml')
-        except Exception as e:
-            raise rdflib.OWLException("Parsing failed!")
+        for owl_file in self.owl_files.split(":"):
+
+            # parse the owl file
+            g = rdflib.Graph()
+            try:
+                g.parse(owl_file, format='xml')
+            except Exception as e:
+                raise rdflib.OWLException("Parsing failed!")
+        
+            # add data to the local storage
+            self.local_storage += g
 
 
     def load_n3(self):
 
         """Load an n3 file"""
                 
-        # parse the owl file
-        self.local_storage = rdflib.Graph()
-        try:
-            self.local_storage.parse(self.n3_file, format='n3')
-        except Exception as e:
-            raise rdflib.OWLException("Parsing failed!")
+        for n3_file in self.n3_files.split(":"):
+        
+            # parse the owl file
+            g = rdflib.Graph()
+            try:
+                g.parse(n3_file, format='n3')
+            except Exception as e:
+                raise rdflib.OWLException("Parsing failed!")
+
+            # add data to the local storage
+            self.local_storage += g
 
 
     def get_classes(self):
