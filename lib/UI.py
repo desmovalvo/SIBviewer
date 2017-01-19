@@ -361,7 +361,12 @@ class Visualization(HasTraits):
 
         # store the kp
         self.kp = kp
-        self.kp.get_everything()
+        if self.kp.owl_file:
+            self.kp.load_owl()
+        elif self.kp.blazehost:
+            self.kp.get_everything_blaze()
+        else:
+            self.kp.get_everything()
         
         ###################################################
         #
@@ -386,7 +391,7 @@ class Visualization(HasTraits):
         # get classes
         cs = self.kp.get_classes()
         for c in cs:
-            self.classes_list.append(TraitClass(class_name = c))
+            self.classes_list.append(TraitClass(class_name = str(c)))
 
         ###################################################
         #
@@ -642,7 +647,6 @@ class Visualization(HasTraits):
         # since the plane may already host other objects,
         # we get the list of objects on that plane and
         # merge it with the uri_list
-        # WIP
         if uri_list:
             old_uri_list = self.res_list.find_by_layer(plane)
             new_uri_list = old_uri_list + uri_list
@@ -836,9 +840,6 @@ class Visualization(HasTraits):
         # re-init res_list
         self.res_list = ResourceList()
         
-        # retrieve data
-        results = self.kp.get_everything()
-
         # retrieve classes
         cs = self.kp.get_classes()
 
@@ -851,7 +852,7 @@ class Visualization(HasTraits):
             uri_list = self.kp.custom_query(sparql_query)
 
         # data analyzer
-        for triple in results:
+        for triple in self.kp.local_storage:
     
             sub, pred, ob = triple
             print triple
@@ -870,7 +871,7 @@ class Visualization(HasTraits):
                 self.res_list.add_resource(sub_res)
                 
             # analyze the object
-            if isinstance(ob, URI):
+            if isinstance(ob, rdflib.URIRef):
                 ob_res = self.res_list.find_by_name(str(ob))
                 if not ob_res:
 
@@ -882,7 +883,7 @@ class Visualization(HasTraits):
                     self.res_list.add_resource(ob_res)
 
             # analyze the predicate (looking at the object)
-            if isinstance(ob, URI):
+            if isinstance(ob, rdflib.URIRef):
     
                 # new object property found
                 op = ObjectProperty(pred, sub_res, ob_res)

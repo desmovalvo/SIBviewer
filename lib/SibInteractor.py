@@ -1,7 +1,9 @@
 #!/usr/bin/python
 
 # global requirements
+import pdb
 import rdflib
+from pymantic import sparql
 from smart_m3.m3_kp_api import *
 
 # local requirements
@@ -13,15 +15,31 @@ class SibInteractor:
 
     """This class constitutes the KP"""
     
-    def __init__(self, host, port):
+    def __init__(self, host, port, owl_file, blazehost):
 
         """Constructor for the SibInteractor"""
 
         # setting class attributes
         self.host = host
-        self.port = int(port)
-        self.kp = m3_kp_api(False, self.host, self.port)
+        try:
+            self.port = int(port)
+        except:
+            self.port = None
+        self.owl_file = owl_file    
         self.local_storage = None
+        self.blazehost = blazehost
+
+
+    def load_owl(self):
+
+        """Load an OWL file"""
+                
+        # parse the owl file
+        self.local_storage = rdflib.Graph()
+        try:
+            self.local_storage.parse(self.owl_file, format='xml')
+        except Exception as e:
+            raise rdflib.OWLException("Parsing failed!")
 
 
     def get_classes(self):
@@ -29,10 +47,7 @@ class SibInteractor:
         """Method that returns the list of the rdf/owl/implicit classes"""
 
         # retrieve data
-        classes = []
-        self.kp.load_query_sparql(q_classes)
-        for binding in self.kp.result_sparql_query:
-            classes.append(binding[0][2])
+        classes = self.local_storage.query(q_classes)
 
         # return data
         return classes
@@ -43,10 +58,7 @@ class SibInteractor:
         """Method that returns the list of the rdf/owl/implicit classes"""
 
         # retrieve data
-        statements = []
-        self.kp.load_query_sparql(q_statements)
-        for binding in self.kp.result_sparql_query:
-            statements.append(binding[0][2])
+        statements = self.local_storage.query(q_statements)
 
         # return data
         return statements
@@ -91,9 +103,47 @@ class SibInteractor:
         return qres
 
 
+    def get_everything_blaze(self):
+
+        """Method used to retrieve all the knowledge base
+        from a blazegraph dataset"""
+
+        # initialize and fill the local storage
+        self.local_storage = rdflib.Graph()
+        server = sparql.SPARQLServer(self.blazehost)
+        results = server.query(q_everything_sparql)
+        for res in results["results"]["bindings"]:
+
+            # analyze the subject  
+            s = res["s"]["value"]
+            if res["s"]["type"] == "uri":
+                ss = rdflib.URIRef(str(s))
+            else:
+                ss = rdflib.BNode(str(s))
+
+            # predicate
+            pp = rdflib.URIRef(str(res["p"]["value"]))
+
+            # analyze the object        
+            o = res["o"]["value"]
+            if res["o"]["type"] == "uri":
+                oo = rdflib.URIRef(str(o))
+            else:
+                oo = rdflib.Literal(str(o))
+
+            print res
+            try:
+                self.local_storage.add((ss, pp, oo))
+            except:
+                pdb.set_trace()
+                                
+
     def get_everything(self):
 
         """Method to retrieve the entire knowledge base"""
+
+        # join SIB
+        self.kp = m3_kp_api(False, self.host, self.port)
 
         # initialize and fill the local storage
         self.local_storage = rdflib.Graph()

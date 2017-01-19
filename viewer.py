@@ -41,16 +41,22 @@ if __name__ == "__main__":
     #
     ###############################################################
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "s:", ["sib="])
+        opts, args = getopt.getopt(sys.argv[1:], "s:o:b:", ["sib=", "owl=", "blaze="])
     except getopt.GetoptError as err:
         sys.exit(2)
 
     sib_host = None
     sib_port = None
+    owl_file = None
+    blaze_host = None
     
     for o, a in opts:
         if o in ("-s", "--sib"):
             sib_host, sib_port = a.split(":")
+        elif o in ("-o", "--owl"):
+            owl_file = a
+        elif o in ("-b", "--blaze"):
+            blaze_host = a
         else:
             assert False, "unhandled option"
 
@@ -60,7 +66,7 @@ if __name__ == "__main__":
     # instantiate the KP 
     #
     ###############################################################
-    kp = SibInteractor(sib_host, sib_port)
+    kp = SibInteractor(sib_host, sib_port, owl_file, blaze_host)
 
     
     ###############################################################

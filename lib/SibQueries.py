@@ -3,9 +3,10 @@
 # global requirements
 from smart_m3.m3_kp_api import *
 
-# The following query is used to retrieve
-# the whole content of the SIB
+# The following queries are used to retrieve
+# the whole content of the SIB or blazegraph
 q_everything = Triple(None, None, None)
+q_everything_sparql = """SELECT ?s ?p ?o WHERE { ?s ?p ?o }"""
 
 # The following query is used to retrieve
 # the list of the classes defined into the SIB
