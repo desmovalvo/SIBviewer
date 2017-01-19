@@ -639,9 +639,17 @@ class Visualization(HasTraits):
             active_label.remove()
         self.active_labels = []
 
+        # since the plane may already host other objects,
+        # we get the list of objects on that plane and
+        # merge it with the uri_list
+        # WIP
+        if uri_list:
+            old_uri_list = self.res_list.find_by_layer(plane)
+            new_uri_list = old_uri_list + uri_list
+
         # calculate new coordinates for object on the given plane
         if uri_list:
-            coords = self.calculate_res_coords(len(uri_list), plane*100)
+            coords = self.calculate_res_coords(len(new_uri_list), plane*100)
         else:
             coords = self.calculate_res_coords(len(self.res_list.list), plane*100)
 
@@ -649,7 +657,7 @@ class Visualization(HasTraits):
         for resource in self.res_list.list.keys():
 
             r = self.res_list.list[resource]      
-            if (not(uri_list) and plane == 0) or (r.name in uri_list):
+            if (not(uri_list) and plane == 0) or (r.name in new_uri_list):
                 
                 # remove the old object
                 r.gitem.remove() 
