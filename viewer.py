@@ -31,9 +31,10 @@ SIB_PORT = 10111
 #
 ###############################################################
 if __name__ == "__main__":
-
+    
     # setting logger
     logging.basicConfig(level=logging.DEBUG)
+    logging.debug("Reading command-line arguments")
 
     ###############################################################
     #
@@ -43,8 +44,11 @@ if __name__ == "__main__":
     try:
         opts, args = getopt.getopt(sys.argv[1:], "s:o:b:n:", ["sib=", "owl=", "blaze=","n3="])
     except getopt.GetoptError as err:
+        logging.error(err)
         sys.exit(2)
 
+    n3_file = None
+    owl_file = None
     sib_host = None
     sib_port = None
     owl_file = None
@@ -69,12 +73,14 @@ if __name__ == "__main__":
     #
     ###############################################################
     kp = SibInteractor(sib_host, sib_port, owl_file, n3_file, blaze_host)
-
     
     ###############################################################
     #
     # instantiate the viewer
     #
-    ###############################################################            
+    ###############################################################
+
+    print "Pre-Visualization"
     ui = Visualization(kp)
+    print "Pre-ui"
     ui.configure_traits()

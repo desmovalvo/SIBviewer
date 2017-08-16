@@ -4,7 +4,7 @@ from smart_m3.m3_kp_api import *
 
 # constants
 SIB_HOST = "localhost"
-SIB_PORT = 10111
+SIB_PORT = 7701
 
 # namespaces
 rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"

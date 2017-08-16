@@ -3,19 +3,19 @@
 # global requirements
 import pdb
 import rdflib
-from pymantic import sparql
+# from pymantic import sparql
 from smart_m3.m3_kp_api import *
 
 # local requirements
 from SibQueries import *
-
+import SEPA_kp_api 
 
 # the KP
 class SibInteractor:
 
     """This class constitutes the KP"""
     
-    def __init__(self, host, port, owl_file, n3_files, blazehost):
+    def __init__(self, host, port, owl_files, n3_files, blazehost):
 
         """Constructor for the SibInteractor"""
 
@@ -25,7 +25,7 @@ class SibInteractor:
             self.port = int(port)
         except:
             self.port = None
-        self.owl_file = owl_file    
+        self.owl_files = owl_files    
         self.n3_files = n3_files
         self.local_storage = None
         self.blazehost = blazehost
@@ -136,9 +136,14 @@ class SibInteractor:
 
         # initialize and fill the local storage
         self.local_storage = rdflib.Graph()
-        server = sparql.SPARQLServer(self.blazehost)
-        results = server.query(q_everything_sparql)
-        for res in results["results"]["bindings"]:
+        
+        #server = sparql.SPARQLServer(self.blazehost)
+        #results = server.query(q_everything_sparql)
+
+        server = SepaKP(self.blazehost)
+        results = server.consume(q_everything_sparql)        
+        
+        for res in results["results"]["bindings"]:        
 
             # analyze the subject  
             s = res["s"]["value"]
